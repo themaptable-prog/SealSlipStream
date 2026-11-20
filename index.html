@@ -1,0 +1,2372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111d">
+<title>SuperSealStream v0.02</title>
+<style>
+:root{color-scheme:dark;--night:#07111d;--panel:#0d202f;--ink:#e8f7f4;--muted:#a1bbc3;--mint:#72f4d0;--line:#7fe5d34a;--gold:#ffe49a;font-family:system-ui,-apple-system,sans-serif;background:var(--night);color:var(--ink)}
+*{box-sizing:border-box}body{margin:0;overflow:hidden}button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}button:disabled{opacity:.4}button,[hidden]{-webkit-tap-highlight-color:transparent}[hidden]{display:none!important}
+.stage{position:absolute;width:100dvw;height:100dvh;left:50%;top:50%;transform:translate(-50%,-50%);overflow:hidden;isolation:isolate;container-type:size;background:var(--night)}
+@media (orientation:portrait){.stage{width:100dvh;height:100dvw;transform:translate(-50%,-50%) rotate(90deg)}}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.chrome{position:absolute;inset:0;pointer-events:none}.chrome button,.chrome section{pointer-events:auto}
+.head-actions,.roster{display:flex;align-items:center;gap:7px}
+#menu-mode{max-width:48cqw;min-height:32px;overflow:hidden;text-overflow:ellipsis}
+.roster{justify-content:flex-end;padding:2px;flex:none}
+.roster button{display:grid;grid-template-columns:40px auto;align-items:center;gap:3px;padding:2px 5px 2px 0;border:1px solid var(--line);border-radius:8px;background:#102839dc;color:#c4dfdf;font-size:10px;font-weight:800;min-height:34px}
+.roster button:hover,.roster button:focus-visible{background:#214451;color:white}
+.roster canvas{position:static;width:40px;height:30px;pointer-events:none}
+.roster-note{margin:0;color:#bad3d5;font-size:11px}
+.roster-block{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.menu{position:absolute;inset:0;display:grid;grid-template-rows:auto 1fr auto;padding:clamp(14px,3.5cqw,56px) clamp(20px,5.6cqw,90px);background:linear-gradient(90deg,#07141ffb 1%,#07141fe0 28%,#07141f2b 65%,transparent 100%),linear-gradient(0deg,#07141fe8,transparent 22%);gap:10px}
+.top,.menu-foot,.dialog-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;color:#c3dedf;font-size:clamp(9px,1cqw,14px);font-weight:750;letter-spacing:.16em;text-transform:uppercase}
+.logo{position:relative;display:inline-grid;place-items:center;width:27px;height:27px;border-radius:50%;border:1px solid #6ddccc;color:var(--mint);font-size:19px;letter-spacing:0}
+.logo:after{content:'';position:absolute;inset:4px;border:1px solid #72f4d04c;border-radius:50%}
+.icon,.quiet,.primary,.tab,.course,.mode,.atlas{border:1px solid var(--line);border-radius:9px;background:#102633d9}
+.icon{width:42px;height:42px;display:inline-grid;place-items:center;line-height:1;font-weight:800;font-size:18px}
+.icon:hover,.quiet:hover,.course:hover,.mode:hover,.atlas:hover,.tab:hover{border-color:var(--mint);background:#163849}
+.hero{align-self:center;width:min(550px,56cqw);padding:1cqh 0}
+.hero h1{font-family:Georgia,'Times New Roman',serif;line-height:.83;letter-spacing:-.09em;font-size:clamp(46px,min(9cqw,18cqh),152px);font-weight:600;margin:0 0 3cqh;color:#ecfdf5;text-shadow:0 2px 30px #03121c80}
+.hero h1 span{display:block;color:var(--mint);font-style:italic;padding-right:.16em}
+.hero p{margin:0 0 3.6cqh;color:#b7d3d7;max-width:36ch;font-size:clamp(11px,min(1.35cqw,3.5cqh),19px);line-height:1.42}
+.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.primary,.quiet{padding:0 15px;min-height:40px;font-size:13px;font-weight:750;white-space:nowrap}
+.primary{background:var(--mint);color:#052521;border-color:transparent;box-shadow:0 0 24px #48ffbf28}.primary:hover{background:#a4ffdf}
+.primary:after{content:' ↗';margin-left:.5em}.primary.plain:after{content:none}
+.menu-foot{align-self:end;color:#a1c1c6;font-size:clamp(10px,1.05cqw,14px)}
+.atlas{display:inline-flex;align-items:center;gap:.8em;padding:8px 12px;text-align:left;color:#d4eeeb;font-size:12px;font-weight:720}
+.atlas .track-dot,.track-dot{border-radius:50%;width:8px;height:8px;background:var(--mint);box-shadow:0 0 12px var(--mint);display:inline-block;flex:none}
+.overlay{position:absolute;z-index:5;inset:0;display:grid;place-items:center;background:#040e18bd;backdrop-filter:blur(7px);pointer-events:auto!important;padding:12px}
+.dialog{width:min(760px,94cqw);max-height:calc(100cqh - 24px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:clamp(14px,3cqh,29px);border-radius:18px;background:linear-gradient(145deg,#132d3e,#091725 80%);border:1px solid #6094916d;box-shadow:0 20px 90px #0008}
+.dialog.narrow{width:min(520px,92cqw)}
+.dialog-top{align-items:flex-start;margin-bottom:clamp(8px,2.5cqh,20px)}.dialog h2{font:600 clamp(27px,6.5cqh,50px)/1 Georgia,serif;letter-spacing:-.045em;margin:0 0 .18em}.eyebrow{color:var(--mint);font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin:0 0 7px}.sub{color:#b7cfd6;font-size:13px;margin:4px 0 0;line-height:1.4}.dialog .icon{width:36px;height:36px;flex:none}
+.modes,.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
+.mode,.tab{padding:7px 10px;color:#acc7d0;font-size:12px;font-weight:740}.mode[aria-pressed=true],.tab[aria-pressed=true]{background:#74eacd20;color:#b6ffea;border-color:#77d9c5}
+.course-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.course{display:flex;align-items:center;gap:10px;text-align:left;min-height:50px;padding:8px 11px}.course .num{color:var(--mint);font:12px ui-monospace,monospace;flex:none}.course strong,.course small{display:block}.course strong{font-size:13px}.course small{font-size:11px;color:#a9c2ca;margin-top:2px;line-height:1.24}.course .record{color:var(--gold);margin-left:auto;font-size:11px;flex:none}.course.transition{border-color:#b1a77579}
+.divider{border:0;border-top:1px solid #42616b75;margin:10px 0}
+.settings{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}
+.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.guide-grid article{background:#0b1a28;border:1px solid #375b668c;border-radius:9px;padding:8px 11px}.guide-grid h3{margin:0 0 3px;color:#dbf6ef;font-size:13px}.guide-grid p,.controls-copy{margin:0;color:#b4ccd3;font-size:12px;line-height:1.38}
+.keys{font-size:12px;color:#b4ccd3;width:100%;border-collapse:collapse;text-align:left;margin-top:6px}.keys th,.keys td{padding:3px 5px;border-bottom:1px solid #5f859141}.keys th{color:#dafaef}kbd{font:inherit;color:#f4fbfb}
+.run-top{position:absolute;top:9px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start}.run-id,.clock{background:#06121cbf;border:1px solid #89eddf34;padding:6px 9px;border-radius:8px;box-shadow:0 1px 20px #06121c40}.run-id strong{font-size:12px;display:block}.run-id span{display:block;color:#b5cbd0;font-size:10px;margin-top:2px}.clock{font:11px ui-monospace,monospace;color:#e0f5f2}
+.run-centre{position:absolute;z-index:1;left:50%;top:50%;display:flex;align-items:center;transform:translate(calc(-100% + 22px),-50%);filter:drop-shadow(0 3px 6px #030f1bb0)}
+.run-centre .icon{width:44px;height:44px;border-radius:50%;flex:none;border:1px solid #b1eed389;background:#0b2333ed;color:#e3ffee;font-size:19px}
+.run-centre .icon:hover{border-color:var(--mint);background:#194b50}
+.progress-wrap{width:clamp(120px,31cqw,490px);padding:12px 14px;border:1px solid #a9e8dc54;border-right:0;border-radius:20px 2px 2px 20px;background:#081c2bdc;margin-right:-4px}
+.progress{position:relative;height:2px;background:#a6e3dc79;border-radius:4px}
+.progress i,.progress b{display:block;position:absolute;transform:translateX(-50%);border-radius:50%;pointer-events:none}
+.progress i{width:7px;height:7px;background:var(--player);top:calc(-2px + var(--track));box-shadow:0 0 7px var(--player);z-index:1}
+.progress b{width:5px;height:5px;top:-1.5px;background:#a8d9cf;opacity:.75}
+.progress b.major{background:var(--gold);border-radius:0;transform:translateX(-50%) rotate(45deg)}
+.training-guide{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:max-content;max-width:min(68cqw,540px);padding:8px 13px;border:1px solid #6bdacc7c;border-radius:11px;background:#0a1a2aee;text-align:center;line-height:1.25}
+.training-guide h2{margin:0 0 3px;font:700 clamp(14px,2.2cqw,25px) Georgia,serif;color:#e7fff6}
+.training-guide p{margin:0;font-size:clamp(9px,1.4cqw,13px);color:#c4e1e3}
+.training-pips{display:flex;justify-content:center;gap:6px;margin-top:6px}
+.training-pips i{width:8px;height:8px;border-radius:50%;border:1px solid #88d9d1}
+.training-pips i.done{background:var(--mint);box-shadow:0 0 9px var(--mint)}
+.training-nav{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:7px}
+.training-nav button{min-height:30px;font-size:11px;padding-inline:9px}
+.results{list-style:none;margin:13px 0;padding:0;display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.results li{padding:8px 10px;background:#0c1e2c;border:1px solid #587d8580;border-radius:8px}.results b,.results small{display:block}.results small{color:#b4cbd6;margin-top:2px;font-size:11px}.results .result-score{font-size:20px;font-weight:800}.results .perfect{color:var(--gold)}
+@container (max-height:420px){.menu{padding-top:12px;padding-bottom:12px;gap:5px}.hero p{margin-bottom:2.5cqh}.primary,.quiet{min-height:34px;padding-inline:11px}.top .icon{width:34px;height:34px}.atlas{padding:5px 8px}.dialog-top{margin-bottom:8px}.modes,.tabs{margin-bottom:7px}.course{min-height:40px;padding-block:5px}}
+@container (max-width:610px){.menu{padding-inline:18px}.hero{width:66cqw}.run-top{left:6px;right:6px}.run-id{padding:4px 5px}.run-id strong{font-size:10px}.run-id span{font-size:8px}.progress-wrap{width:25cqw}.roster{gap:4px}.roster button{grid-template-columns:30px auto}.roster canvas{width:30px}.guide-grid article{padding:6px}.top .brand{font-size:9px}}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+<canvas id="world" aria-label="SuperSealStream playfield"></canvas>
+<div class="chrome">
+  <section id="menu" class="menu" aria-label="Main menu">
+    <div class="top"><div class="brand"><span class="logo" aria-hidden="true">≈</span> Local momentum runner</div><div class="head-actions"><button id="menu-mode" class="quiet" aria-label="Choose player mode"></button><button id="menu-settings" class="icon" title="Settings" aria-label="Settings">⚙</button></div></div>
+    <div class="hero">
+      <h1>SuperSeal<span>Stream</span></h1>
+      <p>Ride both sides of the wave. Build momentum together and cross the line as Super Seals.</p>
+      <div class="actions"><button id="start" class="primary">Play</button><button id="open-training" class="quiet">Training</button><button id="open-guide" class="quiet">Controls</button></div>
+    </div>
+    <div class="menu-foot"><button id="open-atlas" class="atlas"><span class="track-dot"></span><span id="menu-selection">Coastal Kelp · Reef Glide</span></button><div id="menu-roster" class="roster" aria-label="Select a seal for each player"></div></div>
+  </section>
+  <div id="hud" hidden>
+    <div id="run-top" class="run-top"><div class="run-id"><strong id="run-course"></strong><span id="run-mode"></span></div><output class="clock" id="clock">0:00.0</output></div>
+    <div class="run-centre"><div id="progress-wrap" class="progress-wrap"><div id="progress" class="progress" aria-label="Course map and rider progress"><span id="map-landmarks"></span><span id="map-riders"></span></div></div><button id="pause" class="icon" aria-label="Pause" title="Pause (Esc)">Ⅱ</button></div>
+    <div id="training-guide" class="training-guide" hidden><h2 id="drill-title"></h2><p id="drill-rule"></p><div id="drill-pips" class="training-pips" role="status" aria-label="Drill repetitions"></div></div>
+    <div id="training-nav" class="training-nav" hidden><button id="drill-prev" class="quiet">Previous</button><button id="drill-next" class="quiet">Next drill</button></div>
+  </div>
+  <div id="overlay" class="overlay" hidden><section id="dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"></section></div>
+</div>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const stage = $('stage');
+const fullscreenRoot = document.documentElement;
+const canvas = $('world');
+const ctx = canvas.getContext('2d', {alpha:false});
+const TAU = Math.PI * 2;
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const mix = (a, b, amount) => a + (b - a) * amount;
+const smooth = value => {
+  const t = clamp(value, 0, 1);
+  return t * t * (3 - 2 * t);
+};
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const TRAIN = 'Training';
+const COAST = 'Coastal Kelp';
+const THERMAL = 'Glass & Thermal';
+const SKY = 'Aurora Skyways';
+const TRENCH = 'Moonlit Trench';
+const STORM = 'Stormglass Shelf';
+const SOLAR = 'Solar Crown';
+const GROUPS = [COAST,THERMAL,SKY,TRENCH,STORM,SOLAR];
+const SKINS = [
+  {name:'Kelp',color:'#56efbb',face:0,pattern:0},
+  {name:'Coral',color:'#ff98b0',face:1,pattern:1},
+  {name:'Icecap',color:'#82b9ff',face:2,pattern:2},
+  {name:'Sunspot',color:'#ffd173',face:3,pattern:3},
+  {name:'Orchid',color:'#d0a2ff',face:1,pattern:4},
+  {name:'Ember',color:'#ff8767',face:2,pattern:1},
+  {name:'Foam',color:'#dbf6ec',face:0,pattern:2},
+  {name:'Indigo',color:'#8d9eff',face:3,pattern:3},
+  {name:'Lime',color:'#d1f37a',face:1,pattern:4},
+  {name:'Glacier',color:'#59e1f3',face:2,pattern:0}
+];
+function skinFor(id) { return SKINS[save.skins[id]]; }
+function riderColor(id) { return skinFor(id).color; }
+const ROUTES = [
+  {id:'reef', group:COAST, name:'Reef Glide', base:4400, shape:0, desc:'Long swells, soft coral and a first tether catch.'},
+  {id:'kelp', group:COAST, name:'Kelp Gardens', base:5100, shape:1, desc:'Alternating peaks with late slipstream windows.'},
+  {id:'breakers', group:COAST, name:'Outer Breakers', base:5900, shape:2, mountain:900, desc:'Climb the outer reef and spill back across the horizon.'},
+  {id:'drop', group:COAST, name:'The Tidal Drop', base:6500, next:1, shape:3, mountain:1400, desc:'Dive from sunlit reefs into glowing thermal vents.'},
+  {id:'glass', group:THERMAL, name:'Glass Canyons', base:6300, shape:0, desc:'Crystal walls and reinforced high routes.'},
+  {id:'vents', group:THERMAL, name:'Countercurrent Vents', base:7100, shape:2, mountain:1450, desc:'Opposing thermal climbs stretch the tether.'},
+  {id:'fault', group:THERMAL, name:'Faultline Express', base:7500, shape:4, desc:'Chain paired breaches through the thermal gates.'},
+  {id:'launch', group:THERMAL, name:'The Stratosphere Launch', base:7800, next:2, shape:5, mountain:1700, desc:'Climb chained catches and steep half-pipes into the sky.'},
+  {id:'aurora', group:SKY, name:'Aurora Ribbon', base:7700, shape:1, desc:'Draft through luminous gates and bank time in Overdrive.'},
+  {id:'mach', group:SKY, name:'Mach Crown', base:8500, shape:4, desc:'Hit precision breaches and race the Overdrive clock.'},
+  {id:'zenith', group:SKY, name:'Zenith Relay', base:9000, shape:5, mountain:1550, desc:'Choose a route through layered aurora currents.'},
+  {id:'loop', group:SKY, name:'The Endless Loop', base:9600, next:3, shape:6, mountain:1900, marathon:true, desc:'Follow a long descent through the clouds into a midnight ocean.'},
+  {id:'moonpool', group:TRENCH, name:'Moonpool Drift', base:5700, shape:7, desc:'Follow phosphorescent rings into the dark.'},
+  {id:'abyss', group:TRENCH, name:'Abyssal Stair', base:6750, shape:7, mountain:2150, desc:'Climb a series of deep-water shelves toward the current.'},
+  {id:'lanterns', group:TRENCH, name:'Lantern Passage', base:7800, shape:8, desc:'Draft through scattered lights and long, quiet basins.'},
+  {id:'surge', group:TRENCH, name:'Stormward Surge', base:7850, next:4, shape:7, mountain:1750, marathon:true, desc:'Ride the pressure swell up into a lightning front.'},
+  {id:'shelf', group:STORM, name:'Stormglass Shelf', base:6650, shape:8, mountain:1550, desc:'Run a narrow shelf under forks of violet lightning.'},
+  {id:'spires', group:STORM, name:'Thunder Spires', base:7450, shape:9, mountain:2200, desc:'A sustained climb opens into a long, fast descent.'},
+  {id:'eye', group:STORM, name:'Eye of the Gale', base:8050, shape:8, desc:'Line up linked breaches through the calm eye.'},
+  {id:'sunbreak', group:STORM, name:'Sunbreak Crossing', base:8750, next:5, shape:9, mountain:1900, marathon:true, desc:'Cross a storm longer than any of its individual squalls.'},
+  {id:'rim', group:SOLAR, name:'Copper Rim', base:6900, shape:10, desc:'Warm air and long ridges above the clouds.'},
+  {id:'crown', group:SOLAR, name:'The Gilded Crown', base:7950, shape:10, mountain:2650, desc:'The campaign’s tallest sustained climb.'},
+  {id:'flare', group:SOLAR, name:'Flare Fields', base:8650, shape:11, desc:'Time wall breaks through tightly spaced ribbons of sunlight.'},
+  {id:'return', group:SOLAR, name:'The Great Return', base:9900, next:0, shape:10, mountain:2400, marathon:true, desc:'Descend from the solar rim to the reef and begin an Encore.'}
+].map(course => ({...course,world:GROUPS.indexOf(course.group),length:course.base*(course.marathon ? 32 : 8)}));
+const WORLD_ENTRIES = GROUPS.map((group,world) => ROUTES.find(course => course.world === world));
+const PRACTICE = {id:'practice',name:'Still-water training',group:TRAIN,length:1800,world:0,shape:0,practice:true};
+const DRILLS = [
+  {id:'pump',title:'Down-pump',rule:'Drag forward and toward the divider. Hold both directions until the seal compresses.'},
+  {id:'swoop',title:'Crest release',rule:'Drag away from the divider, then release to launch from the crest.'},
+  {id:'leap',title:'Quick slingshot',rule:'Pull backward and release before the elastic thickens.'},
+  {id:'breach',title:'Charged breach',rule:'Pull back until the elastic turns gold and thickens, then release.'},
+  {id:'cancel',title:'Cancel a pull',rule:'Pull backward, then return to the origin spark without releasing.'},
+  {id:'draft',title:'Slipstream',rule:'Hold forward while the seal is behind its guide and the current takes hold.'},
+  {id:'catch',title:'Tether release',rule:'Hold forward with the free rider to pull the anchored rider loose.'},
+  {id:'share',title:'Share a catch',rule:'Release a charged breach through the ring to pass it to your partner.'},
+  {id:'sync',title:'Combined breach',rule:'Release both thickened bands within half a second.'},
+  {id:'super',title:'Mach breakthrough',rule:'With the seal already at the Mach wall, release a charged breach.'}
+];
+const MODES = {
+  solo:{name:'Solo · two riders', desc:'One person controls both riders. Touch uses the same two-player layout.', count:2},
+  duo:{name:'2 players · co-op', desc:'Share one screen, with one touch zone per player.', count:2},
+  teams:{name:'4 players · 2v2', desc:'Left column versus right column. Touch the opposite corner in your column.', count:4},
+  free:{name:'4 players · independent', desc:'Four independent runs. Touch the opposite corner in your column.', count:4}
+};
+const PALETTES = [
+  {top:'#0a2534', air:'#174c57', low:'#071e2d', deep:'#050e1d', far:'#286771', near:'#0c3547', water:'#105663', brim:'#64e4c4', soft:'#427a82', spark:'#b4f5c5', alt:'#159a96'},
+  {top:'#13172f', air:'#3b2851', low:'#10132d', deep:'#090a1b', far:'#52426b', near:'#262242', water:'#452959', brim:'#b599fa', soft:'#665085', spark:'#ffacad', alt:'#1db7c1'},
+  {top:'#11182e', air:'#24486a', low:'#181b41', deep:'#090e27', far:'#48688a', near:'#202c54', water:'#303a72', brim:'#a0dfff', soft:'#6269a0', spark:'#b2ffd3', alt:'#ac79ef'},
+  {top:'#081328', air:'#143751', low:'#080f25', deep:'#030a17', far:'#194d61', near:'#122944', water:'#164061', brim:'#65f3d2', soft:'#48648a', spark:'#b8a4ff', alt:'#217db4'},
+  {top:'#161c33', air:'#324653', low:'#191b37', deep:'#070d22', far:'#556982', near:'#27294c', water:'#3f4470', brim:'#b3d6ff', soft:'#586798', spark:'#e2b3ff', alt:'#8479d9'},
+  {top:'#2c1b2f', air:'#573b46', low:'#251f32', deep:'#110f23', far:'#a36a66', near:'#532d47', water:'#754256', brim:'#ffca92', soft:'#8e6468', spark:'#ffefbb', alt:'#e4707d'}
+
+];
+const KEYSETS = [
+  {left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS'},
+  {left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown'},
+  {left:'KeyF',right:'KeyH',up:'KeyT',down:'KeyG'},
+  {left:'KeyJ',right:'KeyL',up:'KeyI',down:'KeyK'}
+];
+const FLOW = 365;
+const MACH = 770;
+const SUPER = 1050;
+const DRAG = 76;
+const LINK_WINDOW = .48;
+const STEP = 1 / 120;
+const defaultSave = {mode:'duo',course:'reef',muted:false,motion:!reduceMotion.matches,fullscreen:true,skins:[0,1,2,3],best:{}};
+let save = {...defaultSave};
+try {
+  const previous = JSON.parse(localStorage.getItem('SuperSealStream.v0.02') || 'null');
+  const legacy = previous || JSON.parse(localStorage.getItem('SuperSealStream.v0.01') || 'null');
+  if (legacy && Object.hasOwn(MODES,legacy.mode)) {
+    save = {...defaultSave,...legacy,course:ROUTES.some(r => r.id === legacy.course) ? legacy.course : 'reef',best:previous?.best || {}};
+    save.skins = defaultSave.skins.map((fallback,id) => SKINS[legacy.skins?.[id]] ? legacy.skins[id] : fallback);
+  }
+} catch (error) { /* Private or local-file browsing can disable storage. */ }
+function persist() {
+  try { localStorage.setItem('SuperSealStream.v0.02', JSON.stringify(save)); }
+  catch (error) { /* The current session still retains its records. */ }
+}
+
+let width = 0, height = 0, density = 1, turned = false;
+let run = null, state = 'menu', panel = '', atlasTab = COAST, menuTime = 0;
+let lastFocus = null, audioContext = null, fullscreenPending = false, fullscreenAttempt = -Infinity;
+const pointers = new Map();
+const heldKeys = new Set();
+
+function resize() {
+  width = stage.clientWidth;
+  height = stage.clientHeight;
+  turned = matchMedia('(orientation:portrait)').matches;
+  density = Math.min(2, devicePixelRatio || 1);
+  canvas.width = Math.max(1, Math.round(width * density));
+  canvas.height = Math.max(1, Math.round(height * density));
+  ctx.setTransform(density, 0, 0, density, 0, 0);
+  clearControls();
+}
+new ResizeObserver(resize).observe(stage);
+resize();
+
+function noise(number) {
+  const raw = Math.sin(number * 127.1 + 311.7) * 43758.5453123;
+  return raw - Math.floor(raw);
+}
+function colorMix(a, b, t) {
+  const first = parseInt(a.slice(1), 16), second = parseInt(b.slice(1), 16);
+  return '#' + [16,8,0].map(bit => Math.round(mix((first >> bit) & 255,(second >> bit) & 255,t)).toString(16).padStart(2,'0')).join('');
+}
+function paletteAt(course, x, mastery = 0) {
+  const from = PALETTES[mastery && course.world === 0 ? 3 : course.world];
+  if (course.next === undefined) return from;
+  const t = smooth((x / course.length - .59) / .38);
+  const to = PALETTES[course.next === 0 ? 3 : course.next];
+  return Object.fromEntries(Object.keys(from).map(key => [key,colorMix(from[key],to[key],t)]));
+}
+const PROFILES = [[103,244],[121,210],[195,207],[123,244],[170,178],[218,147],[173,209],[118,286],[156,197],[201,166],[189,288],[181,159]];
+function terrainProfile(world, shape, lane, x, flatness = 1) {
+  const sign = lane ? 1 : -1;
+  const seed = shape * .57 + world * .41;
+  const phase = lane * ([2,5,9,11].includes(shape) ? 2.48 : .75);
+  const [amplitude,period] = PROFILES[shape];
+  return sign * (70 + flatness * (amplitude * Math.sin(x / period + phase + seed) +
+    (31 + shape * 4) * Math.sin(x / (period * .49) - phase + seed) + 25 * Math.cos(x / 612 + lane * 2.7)));
+}
+function gradeShape(t,a,b,c,d) {
+  return smooth((t-a)/(b-a)) * (1-smooth((t-c)/(d-c)));
+}
+function terrain(course, lane, x) {
+  if (course.practice) {
+    const centre = 580;
+    const grade = run?.training?.drill.id === 'swoop' ? 0 : lane ? -.12 : .12;
+    const crest = 46 * Math.cos((x-centre) / 159);
+    return (lane ? 1 : -1) * (114 + crest) + (x-centre) * grade;
+  }
+  const sign = lane ? 1 : -1;
+  const t = x / course.length;
+  const offset = lane * .012;
+  const rise = Math.min(.14,9450/course.length);
+  const fall = Math.min(.105,7350/course.length);
+  const firstCrest = .14+rise+.023;
+  const secondCrest = .53+rise+.024;
+  const first = gradeShape(t+offset,.14,.14+rise,firstCrest,firstCrest+fall);
+  const second = gradeShape(t-offset,.53,.53+rise,secondCrest,secondCrest+fall);
+  const peak = course.mountain ? course.mountain * (first + second * (course.marathon ? 1.1 : .78)) : 0;
+  const window = Math.min(.025,1700/course.length);
+  const ledge = course.mountain ?
+    gradeShape(t+offset,.14-window,.14,firstCrest+fall,firstCrest+fall+window) +
+    gradeShape(t-offset,.53-window,.53,secondCrest+fall,secondCrest+fall+window) : 0;
+  let y = terrainProfile(course.world,course.shape,lane,x,1-ledge*.973);
+  if (course.mountain) y += sign * peak * (lane ? .82 : 1);
+  if (course.id === 'drop' || course.id === 'loop' || course.id === 'return') {
+    const trench = course.id === 'return' ? 1420 : course.id === 'loop' ? 960 : 740;
+    y -= sign * trench * gradeShape(t,.40,.54,.55,.76);
+  }
+  if (course.next !== undefined) {
+    const progress = smooth((t-.83)/.17);
+    const entry = WORLD_ENTRIES[course.next];
+    y = mix(y,terrainProfile(entry.world,entry.shape,lane,x-course.length),progress);
+  }
+  return y;
+}
+function slope(course, lane, x) {
+  return (terrain(course,lane,x + 3) - terrain(course,lane,x - 3)) / 6;
+}
+function elevations(course, lane, x) {
+  const current = slope(course,lane,x);
+  return {slope:current, bend:(slope(course,lane,x + 18)-slope(course,lane,x - 15)) / 33};
+}
+function routeLift(p, x) {
+  if (!p.route || x <= p.route.start || x >= p.route.end) return 0;
+  const phase = (x - p.route.start) / (p.route.end - p.route.start);
+  return -p.gravity * 112 * Math.sin(Math.PI * phase) ** 2;
+}
+function riderSurface(p, x) {
+  return terrain(run.course,p.lane,x) + routeLift(p,x) - p.gravity * 16;
+}
+function eventBlueprint(course) {
+  const marks = [];
+  const add = (kind,x,lane = -1) => marks.push({kind,x:Math.round(x),lane});
+  if (course.practice) return marks;
+  const offset = ROUTES.indexOf(course) % 4;
+  const firstOrb = 2200 + offset * 240;
+  const rhythm = 5100 + course.world * 255 + offset * 190;
+  let phrase = 0;
+  for (let start=firstOrb;start<course.length-820;start+=rhythm,phrase++) {
+    const lane = (phrase + offset) % 2;
+    const fill = [
+      ['orb',0,lane],['bump',790,1-lane],['orb',2430,1-lane],
+      [phrase%3 === 0 ? 'catch' : 'current',3280,lane]
+    ];
+    const advanced = course.world > 0 || course.next !== undefined;
+    if (advanced) {
+      fill.push([phrase%2 ? 'gate' : 'wall',1710,-1]);
+      if (course.world >= 2) fill.push(['wall',4210,-1]);
+    } else if (phrase%3 === 2) {
+      fill.push(['wall',1720,-1]);
+    }
+    if (course.id === 'launch' && phrase%2 === 1) fill.push(['catch',3920,1-lane]);
+    for (const [kind,gap,track] of fill) {
+      if (start + gap < course.length - 470) add(kind,start+gap,track);
+    }
+  }
+  add('current',course.length-1470);
+  add('orb',course.length-830);
+  return marks.sort((a,b) => a.x - b.x);
+}
+function markIndex(marks,x) {
+  let a=0,b=marks.length;
+  while (a < b) {
+    const mid=(a+b)>>1;
+    if (marks[mid].x < x) a=mid+1;
+    else b=mid;
+  }
+  return a;
+}
+function newTrack(course) {
+  const marks=eventBlueprint(course).map(mark => ({...mark,taken:new Set(),opened:false,offer:false}));
+  return {marks,gates:marks.filter(mark=>mark.kind==='gate'),releases:[],lastPairAt:-10};
+}
+function makeRider(id, track, mode, mastery) {
+  const four = MODES[mode].count === 4;
+  const lane = four ? Number(id >= 2) : id;
+  const gravity = lane ? -1 : 1;
+  const startSpeed = mastery ? Math.min(294,190 + mastery * 18) : 112;
+  return {id,lane,gravity,dir:four && id % 2 ? -1:1,track,x:0,y:0,v:startSpeed,vy:0,air:false,finished:false,
+    score:0,finishTime:0,finishSpeed:0,finishTier:1,tier:1,flowCharge:0,machCharge:0,over:0,overAge:0,freeze:0,pose:null,
+    control:null,caught:null,route:null,breach:0,braceFlash:0,fx:null,draft:false,
+    trail:[],trailAt:0,flags:new Set(),distanceScore:0};
+}
+function setupRun(course,mastery = 0) {
+  const mode = save.mode;
+  const count = MODES[mode].count;
+  const tracks = Array.from({length:mode === 'free' ? 4 : mode === 'teams' ? 2 : 1}, () => newTrack(course));
+  const riders = Array.from({length:count}, (_, id) => makeRider(id, tracks[mode === 'free' ? id : mode === 'teams' ? id % 2 : 0],mode,mastery));
+  run = {course,mode,mastery,riders,time:0,camera:null,split:false,splitMix:0,waves:[],hudAt:0,training:null};
+  riders.forEach(p => { p.y = riderSurface(p,p.x); });
+  state = 'run';
+  closePanel(false);
+  $('hud').hidden = false;
+  $('menu').hidden = true;
+  $('pause').focus({preventScroll:true});
+  $('run-course').textContent = course.name;
+  $('run-mode').textContent = MODES[mode].name + (mastery ? ' · Encore ' + mastery : '');
+  $('run-top').hidden = !!course.practice;
+  $('training-guide').hidden = !course.practice;
+  $('training-nav').hidden = !course.practice;
+  $('progress-wrap').hidden = !!course.practice;
+  $('map-riders').replaceChildren(...riders.map((p,i) => {
+    const marker = document.createElement('i');
+    marker.style.setProperty('--player',riderColor(p.id));
+    marker.style.setProperty('--track',(i-(riders.length-1)*.5)*3+'px');
+    return marker;
+  }));
+  const checkpoints = course.practice ? [] : [0,.2,.4,.6,.8,1];
+  if (course.mountain) {
+    const climb=Math.min(.14,9450/course.length);
+    checkpoints.push(.14+climb,.53+climb);
+  }
+  $('map-landmarks').replaceChildren(...checkpoints.map((mark,i) => {
+    const waypoint=document.createElement('b');
+    waypoint.style.left=100*mark+'%';
+    if (i > 5 || mark===1) waypoint.classList.add('major');
+    return waypoint;
+  }));
+  updateHud();
+  sound('start');
+}
+function begin(courseId, mastery = 0) {
+  const course = ROUTES.find(item => item.id === courseId) || ROUTES[0];
+  save.course = course.id;
+  persist();
+  setupRun(course,mastery);
+}
+function partner(p) {
+  if (run.mode === 'free') return null;
+  if (run.mode === 'teams') return run.riders[p.id < 2 ? p.id + 2 : p.id - 2];
+  return run.riders[1 - p.id];
+}
+function award(p, points) { p.score += points; }
+function wave(p, kind, x = p.x, y = p.y) {
+  run.waves.push({track:p.track,kind,x,y,age:0,id:p.id,lane:p.lane});
+}
+function signal(p,kind) {
+  if (p.fx && p.fx.kind === 'super' && run.time - p.fx.at < .75 && kind !== 'fade') return;
+  p.fx = {kind,at:run.time};
+}
+function transform(p) {
+  p.over = 10;
+  p.overAge = 0;
+  p.tier = 3;
+  p.v = SUPER;
+  p.freeze = .36;
+  p.pose = {x:p.x,y:p.y};
+  p.trail.length = 0;
+  p.flags.add('super');
+  award(p,900);
+  wave(p,'super');
+  signal(p,'super');
+  sound('super');
+}
+function speedCeiling(p) {
+  if (p.flowCharge < 1) return FLOW-4;
+  return mix(MACH*.82,MACH*.996,p.machCharge);
+}
+function boost(p, gain, {burst = false, time = .5} = {}) {
+  if (p.finished) return;
+  if (p.tier === 3) {
+    p.over = Math.min(13, p.over + time);
+    return;
+  }
+  const raw = p.v + gain * (p.flowCharge < 1 ? .37 : .85);
+  if (burst && p.machCharge >= 1 && p.v >= FLOW+85 && raw >= MACH+68) {
+    transform(p);
+    return;
+  }
+  p.v = Math.min(raw,speedCeiling(p));
+  if (p.v >= FLOW) p.tier = 2;
+}
+function transformRoute(p, mark) {
+  p.route = {start:mark.x,end:Math.min(mark.x + 660,run.course.length - 50)};
+  p.flags.add('route');
+  boost(p,99,{burst:true,time:1.05});
+  award(p,350);
+  signal(p,'arc');
+  wave(p,'pair',mark.x);
+}
+function openReinforced(p, combined) {
+  const gate = p.track.gates.find(mark => !mark.opened && mark.x > p.x - 75);
+  if (gate && (gate.x - p.x < 1650)) {
+    gate.opened = true;
+    wave(p,'pair',gate.x,0);
+  }
+  if (!combined) return;
+  p.flags.add('combined');
+  const other = partner(p);
+  other.flags.add('combined');
+  award(p,450);
+  award(other,450);
+  boost(p,120,{burst:true,time:1.1});
+  boost(other,120,{burst:true,time:1.1});
+  wave(p,'pair');
+  signal(p,'pair');
+  signal(other,'pair');
+  sound('pair');
+}
+function registerBreach(p) {
+  if (run.mode === 'free') {
+    openReinforced(p,false);
+    return;
+  }
+  const track = p.track;
+  track.releases = track.releases.filter(event => run.time - event.time <= LINK_WINDOW);
+  if (track.releases.some(event => event.id !== p.id) && run.time - track.lastPairAt > LINK_WINDOW) {
+    track.releases.length = 0;
+    track.lastPairAt = run.time;
+    const other = partner(p);
+    openReinforced(p.x > other.x ? p : other,true);
+  } else {
+    track.releases.push({id:p.id,time:run.time});
+  }
+}
+function jump(p, aim, force, swoop = false) {
+  const lift = swoop ? clamp(-aim,.3,1) : clamp(-aim,-1,1);
+  p.air = true;
+  p.vy = -p.gravity * force * (.56 + .87 * lift);
+  p.y -= p.gravity * 3;
+}
+function letGo(p, fire) {
+  const control = p.control;
+  if (!control) return;
+  p.control = null;
+  if (!fire || control.broken || p.finished || p.air) return;
+  if (run.training) {
+    releaseDrill(p,control);
+    return;
+  }
+  const back = -control.lastX;
+  if (back > .001) {
+    const strength = clamp(back,0,1);
+    if (control.pull >= .48) {
+      const charge = smooth((control.pull - .4) / .58);
+      p.breach = .43 + charge * .30;
+      p.flags.add('breach');
+      boost(p,135 + 177 * charge + 28 * strength,{burst:true,time:.75 + charge * .62});
+      award(p,90);
+      wave(p,'breach');
+      signal(p,'breach');
+      if (p.caught) releaseCatch(p,false,'forced');
+      registerBreach(p);
+      sound('breach');
+    } else if (!p.caught) {
+      p.flags.add('leap');
+      boost(p,34 + 112 * strength,{time:.38 + .35 * strength});
+      jump(p,control.lastY,170 + 145 * strength);
+      award(p,32);
+      signal(p,'leap');
+      wave(p,'leap');
+      sound('leap');
+    }
+  } else if (!p.caught && !p.air && control.lastY < -.16 && control.lastX > -.05) {
+    const grade = slope(run.course,p.lane,p.x) * p.gravity;
+    const upcoming = slope(run.course,p.lane,p.x + 145) * p.gravity;
+    const crest = grade < -.025 && upcoming > -.32;
+    p.flags.add('swoop');
+    boost(p,crest ? 110 : 33,{time:crest ? .63 : .23});
+    jump(p,control.lastY,crest ? 280 : 171,true);
+    award(p,crest ? 110 : 20);
+    signal(p,'swoop');
+    wave(p,'swoop');
+    sound('leap');
+  }
+}
+function releaseCatch(p, tethered, reason = '') {
+  const caught = p.caught;
+  if (!caught) return;
+  p.caught = null;
+  const amount = tethered ? 225 + caught.power * .38 : 44 + caught.power * .11;
+  if (p.tier !== 3) p.v = Math.max(p.v,caught.start);
+  boost(p,amount,{burst:tethered,time:tethered ? 2.05 : .3});
+  p.x += 1;
+  p.flags.add('catch');
+  if (tethered) {
+    award(p,520);
+    const other = partner(p);
+    if (other && !other.finished) {
+      other.flags.add('assist');
+      award(other,220);
+      if (other.tier === 3) boost(other,0,{time:.65});
+    }
+    signal(p,'catch');
+    jump(p,-.38,240);
+    wave(p,'catch');
+    sound('catch');
+  } else if (reason !== 'forced') {
+    signal(p,'anchor');
+    award(p,70);
+    jump(p,-.2,130);
+    sound('leap');
+  }
+}
+function startCatch(p, mark, oldX) {
+  const other = partner(p);
+  if (!other || other.finished) {
+    boost(p,65,{time:.66});
+    award(p,90);
+    p.flags.add('current');
+    signal(p,'current');
+    wave(p,'current');
+    return;
+  }
+  if (p.breach > 0) {
+    mark.offer = true;
+    if (p.tier !== 3) p.v *= .96;
+    p.flags.add('share');
+    award(p,105);
+    signal(p,'share');
+    wave(p,'share');
+    if (other.x >= mark.x - 4 && other.x <= mark.x + 150 && !mark.taken.has(other.id)) {
+      mark.taken.add(other.id);
+      if (!other.caught) startCatch(other,mark,other.x);
+    }
+    return;
+  }
+  if (p.caught) return;
+  p.x = Math.max(oldX,mark.x);
+  p.y = riderSurface(p,p.x);
+  p.air = false;
+  p.vy = 0;
+  const separation = Math.hypot(other.x - p.x,(other.y - p.y) * .43);
+  p.caught = {age:0,power:Math.max(p.v,125),start:p.v,initial:separation};
+  signal(p,'anchor');
+  sound('anchor');
+}
+function contact(p, oldX) {
+  const marks = p.track.marks;
+  for (let index=markIndex(marks,oldX-145);index<marks.length;index++) {
+    const mark=marks[index];
+    if (mark.x > p.x) break;
+    if (mark.taken.has(p.id) || oldX >= mark.x + (mark.kind === 'catch' && mark.offer ? 140 : 0)) continue;
+    const correctLane = mark.lane < 0 || mark.lane === p.lane;
+    if (!correctLane && !(mark.kind === 'catch' && mark.offer)) continue;
+    mark.taken.add(p.id);
+    const near = Math.abs(p.y - riderSurface(p,p.x));
+    if (mark.kind === 'catch') {
+      if (near < 150 || p.breach > 0) startCatch(p,mark,oldX);
+      if (p.caught) break;
+    } else if (mark.kind === 'bump' && near < 43) {
+      if (p.tier !== 3) p.v *= .89;
+      signal(p,'bump');
+      wave(p,'bump');
+    } else if (mark.kind === 'orb' && near < 136) {
+      boost(p,43,{time:1.16});
+      award(p,110);
+      p.flags.add('orb');
+      signal(p,'orb');
+      wave(p,'orb');
+      sound('orb');
+    } else if (mark.kind === 'current') {
+      boost(p,95,{time:1.32});
+      award(p,125);
+      p.flags.add('current');
+      signal(p,'current');
+      wave(p,'current');
+    } else if (mark.kind === 'gate' && mark.opened) {
+      transformRoute(p,mark);
+    } else if (mark.kind === 'wall' && near < 85) {
+      const canBreak = p.breach > 0 || p.tier === 3 || p.v >= MACH * .83;
+      if (canBreak) {
+        boost(p,p.breach > 0 ? 138 : 101,{burst:p.breach > 0,time:1.3});
+        award(p,260);
+        p.flags.add('wall');
+        signal(p,'wall');
+        wave(p,'wall');
+        sound('breach');
+      } else {
+        if (p.tier !== 3) p.v *= .86;
+        signal(p,'bypass');
+        wave(p,'bump');
+      }
+    } else if (mark.kind === 'gate') {
+      signal(p,'bypass');
+      wave(p,'bypass');
+    }
+  }
+}
+function updateControl(p, dt) {
+  const control = p.control;
+  if (!control || control.broken) return {x:0,y:0};
+  const vector = controlVector(p);
+  control.lastX = vector.x;
+  control.lastY = vector.y;
+  if (vector.x < -.001 && !p.air) {
+    control.pull += dt;
+    if (run.training && control.pull>.14) control.armed=true;
+    if (control.pull >= 1.48) {
+      control.broken = true;
+      control.lastX = control.lastY = 0;
+      p.braceFlash = .28;
+      signal(p,'reset');
+      wave(p,'reset');
+      sound('reset');
+    }
+  } else {
+    control.pull = 0;
+  }
+  return control.broken ? {x:0,y:0} : vector;
+}
+function evolveOverdrive(p, dt) {
+  if (p.tier !== 3) return;
+  p.overAge += dt;
+  p.over -= dt * (1 + p.overAge * (.083 + Math.min(.13,run.mastery * .014)) + (run.course.world === 2 ? p.overAge * .035 : 0));
+  if (p.over > 0) return;
+  p.over = 0;
+  p.v = FLOW - 22;
+  p.machCharge = .28;
+  p.tier = 1;
+  signal(p,'fade');
+  wave(p,'fade');
+  sound('fade');
+}
+function updateRider(p, dt) {
+  if (p.finished) return;
+  const input = updateControl(p,dt);
+  evolveOverdrive(p,dt);
+  p.breach = Math.max(0,p.breach - dt);
+  p.braceFlash = Math.max(0,p.braceFlash - dt);
+  p.freeze = Math.max(0,p.freeze - dt);
+  p.draft = false;
+  const other = partner(p);
+  if (p.caught) {
+    const caught = p.caught;
+    caught.age += dt;
+    caught.power = Math.min(1010,caught.power + (355 + (p.tier === 3 ? 180 : 0)) * dt);
+    const gap = other ? Math.hypot(other.x - p.x,(other.y - p.y) * .43) : 0;
+    const forward = other ? other.x - p.x : 0;
+    const maxStretch = other?.tier === 3 ? 104 : 195;
+    const taut = other && !other.finished && forward > 75 &&
+      (gap > Math.max(maxStretch,caught.initial + 63) || forward > maxStretch + 75);
+    if (taut && caught.age > .16) releaseCatch(p,true);
+    else if (caught.age >= 2.35 || other?.finished) releaseCatch(p,false);
+    return;
+  }
+
+  const surface = elevations(run.course,p.lane,p.x);
+  const grade = surface.slope * p.gravity;
+  const flightInput = p.air ? .38 : 1;
+  const active = p.v > 134 && (input.x > .035 || Math.abs(input.y) > .22);
+  let acceleration = 118 * grade / Math.sqrt(1 + grade * grade) - 19 - p.v * .038;
+  acceleration += Math.max(0,input.x) * 119 * flightInput;
+  if (!p.air) {
+    const down = Math.max(0,input.y);
+    const up = Math.max(0,-input.y);
+    const valley = Math.max(0,-surface.bend * p.gravity * 98);
+    acceleration += down * (40 + 172 * Math.max(0,grade) + 110 * valley);
+    acceleration += up * (27 + 181 * Math.max(0,-grade));
+    if (down > .22 && (grade > .15 || valley > .13)) p.flags.add('pump');
+  }
+  if (other && !other.finished && !other.caught) {
+    const gap = other.x - p.x;
+    if (gap > 18 && gap < 235 && active && Math.abs(other.y - p.y) < 260) {
+      p.draft = true;
+      p.flags.add('draft');
+      acceleration += 122 * (1 - gap / 300);
+      if (p.tier === 3) p.over = Math.min(13,p.over + dt * .44);
+    }
+  }
+
+  if (p.tier < 3) {
+    const drive = 1 + Math.min(.22,run.mastery*.035);
+    if (p.flowCharge < 1 && p.v > 226) {
+      const quality = active ? .66 + .34 * clamp((p.v-226)/(FLOW-226),0,1) : .31;
+      p.flowCharge = clamp(p.flowCharge + dt*quality/13,0,1);
+      if (p.flowCharge === 1) {
+        signal(p,'flow');
+        wave(p,'flow');
+        sound('flow');
+      }
+    }
+    if (p.tier === 2 && p.v > FLOW+55 && p.machCharge < 1) {
+      const quality = active ? .58 + .42 * clamp((p.v-FLOW)/(MACH-FLOW),0,1) : .24;
+      p.machCharge = clamp(p.machCharge + dt*quality/22,0,1);
+      if (p.machCharge === 1) {
+        signal(p,'mach');
+        wave(p,'mach');
+      }
+    }
+    const cap = p.v < FLOW ? 1 : Math.max(.032,1 - ((p.v-FLOW)/(MACH-FLOW))**3);
+    const accelerationAboveWall = acceleration > 0 ? acceleration*cap : acceleration;
+    p.v = clamp(p.v+accelerationAboveWall*dt*drive,150+Math.min(65,run.mastery*13),speedCeiling(p));
+    p.tier = p.flowCharge === 1 && p.v >= FLOW ? 2 : 1;
+  } else {
+    p.v = SUPER;
+    if (acceleration > 145) p.over = Math.min(13,p.over + dt * Math.min(.38,acceleration / 900));
+  }
+
+  const oldX = p.x;
+  const oldY = p.y;
+  p.x = Math.min(run.course.length,p.x + p.v * dt);
+  const target = riderSurface(p,p.x);
+  if (p.air) {
+    const guidance = p.tier === 3 ? 1.55 : 1;
+    p.vy += p.gravity * (410 + Math.max(0,input.y) * 420 * guidance - Math.max(0,-input.y) * 106) * dt;
+    p.y += p.vy * dt;
+    // The rail catches a falling rider from either side when it sweeps up under them.
+    if ((p.y - target) * p.gravity >= 0 && ((p.vy * p.gravity > 0) || Math.abs(p.y - target) > 39)) {
+      p.air = false;
+      p.y = target;
+      p.vy = 0;
+      if (input.y > .26) boost(p,10,{time:.16});
+    }
+  } else {
+    p.y = target;
+    p.vy = (p.y - oldY) / dt;
+  }
+
+  const fullDistance = Math.floor(p.x / 7);
+  const progress = fullDistance - p.distanceScore;
+  if (progress > 0) {
+    award(p,progress * p.tier);
+    p.distanceScore = fullDistance;
+  }
+  contact(p,oldX);
+  p.trailAt += dt;
+  if (p.trailAt > .024) {
+    p.trailAt = 0;
+    p.trail.unshift({x:p.x,y:p.y});
+    if (p.trail.length > 15) p.trail.pop();
+  }
+  if (p.x >= run.course.length) finishRider(p);
+}
+function finishRider(p) {
+  p.finished = true;
+  p.finishTime = run.time;
+  p.finishSpeed = p.v;
+  p.finishTier = p.tier;
+  p.control = null;
+  p.freeze = 0;
+  award(p,p.tier === 3 ? 2200 : p.tier === 2 ? 700 : 250);
+  wave(p,'finish');
+  signal(p,'finish');
+  sound(p.tier === 3 ? 'super' : 'finish');
+}
+function updateHud() {
+  if (!run) return;
+  $('clock').textContent = formatTime(run.time);
+  if (run.training) return;
+  const markers = $('map-riders').children;
+  run.riders.forEach((p,i) => {
+    if (markers[i]) markers[i].style.left = clamp(100*p.x/run.course.length,0,100) + '%';
+  });
+}
+function tick(dt) {
+  run.time += dt;
+  if (run.training) tickTraining(dt);
+  else run.riders.forEach(p => updateRider(p,dt));
+  run.waves.forEach(wave => { wave.age += dt; });
+  run.waves = run.waves.filter(wave => wave.age < 1.15);
+  if (run.time > run.hudAt) {
+    updateHud();
+    run.hudAt = run.time + .14;
+  }
+  if (!run.training && run.riders.every(p => p.finished)) showResults();
+}
+function localPoint(event) {
+  const rect = canvas.getBoundingClientRect();
+  if (turned) return {x:(event.clientY - rect.top) * width / rect.height,y:(rect.right - event.clientX) * height / rect.width};
+  return {x:(event.clientX - rect.left) * width / rect.width,y:(event.clientY - rect.top) * height / rect.height};
+}
+function controlVector(p) {
+  const control = p.control;
+  if (!control) return {x:0,y:0};
+  if (control.kind === 'key') {
+    const keys = KEYSETS[p.id];
+    const x = (Number(heldKeys.has(keys.right)) - Number(heldKeys.has(keys.left))) * p.dir;
+    const y = (Number(heldKeys.has(keys.down)) - Number(heldKeys.has(keys.up))) * p.gravity;
+    const length = Math.max(1,Math.hypot(x,y));
+    return {x:x / length,y:y / length};
+  }
+  const dx = (control.x - control.originX) * p.dir;
+  const dy = (control.y - control.originY) * -p.gravity;
+  const length = Math.max(DRAG * clamp(height / 500,.68,1.28),Math.hypot(dx,dy));
+  return {x:dx / length,y:dy / length};
+}
+function clearControls() {
+  pointers.clear();
+  heldKeys.clear();
+  if (run) run.riders.forEach(p => { p.control = null; });
+}
+function createControl(kind, values = {}) {
+  return {kind,pull:0,lastX:0,lastY:0,broken:false,...values};
+}
+function rememberVector(p) {
+  if (!p.control || p.control.broken) return;
+  const vector = controlVector(p);
+  p.control.lastX = vector.x;
+  p.control.lastY = vector.y;
+}
+canvas.addEventListener('pointerdown', event => {
+  if (state !== 'run' || panel || (event.pointerType === 'mouse' && event.button !== 0)) return;
+  event.preventDefault();
+  const point = localPoint(event);
+  const bottom = Number(point.y >= height / 2);
+  const index = run.riders.length === 2 ? 1 - bottom : (1-bottom)*2 + Number(point.x >= width/2);
+  const p = run.riders[index];
+  if (p.finished || p.control) return;
+  autoFullscreen();
+  wakeAudio();
+  p.control = createControl('pointer',{originX:point.x,originY:point.y,x:point.x,y:point.y});
+  pointers.set(event.pointerId,p);
+  canvas.setPointerCapture(event.pointerId);
+});
+canvas.addEventListener('pointermove', event => {
+  const p = pointers.get(event.pointerId);
+  if (!p?.control) return;
+  const point = localPoint(event);
+  p.control.x = point.x;
+  p.control.y = point.y;
+});
+function finishPointer(event, fire) {
+  const p = pointers.get(event.pointerId);
+  if (!p) return;
+  pointers.delete(event.pointerId);
+  if (fire && p.control) {
+    const point = localPoint(event);
+    p.control.x = point.x;
+    p.control.y = point.y;
+    rememberVector(p);
+  }
+  letGo(p,fire && state === 'run' && !panel);
+}
+canvas.addEventListener('pointerup',event => finishPointer(event,true));
+canvas.addEventListener('pointercancel',event => finishPointer(event,false));
+canvas.addEventListener('lostpointercapture',event => finishPointer(event,false));
+canvas.addEventListener('contextmenu',event => event.preventDefault());
+const boundKeys = new Set(KEYSETS.flatMap(set => Object.values(set)));
+window.addEventListener('keydown',event => {
+  if (event.code === 'Escape' || event.code === 'KeyP') {
+    if (event.repeat || (event.code === 'KeyP' && state !== 'run')) return;
+    if (panel && panel !== 'results' && panel !== 'trained') {
+      event.preventDefault();
+      backPanel();
+    } else if (state === 'run' && !panel) {
+      event.preventDefault();
+      pause();
+    }
+    return;
+  }
+  if (event.code === 'Tab' && panel) {
+    const items = [...$('dialog').querySelectorAll('button:not([disabled])')];
+    if (items.length && ((!event.shiftKey && document.activeElement === items.at(-1)) || (event.shiftKey && document.activeElement === items[0]))) {
+      event.preventDefault();
+      (event.shiftKey ? items.at(-1) : items[0]).focus();
+    }
+    return;
+  }
+  if (state !== 'run' || panel || !boundKeys.has(event.code) || event.altKey || event.ctrlKey || event.metaKey) return;
+  const p = run.riders.find(p => Object.values(KEYSETS[p.id]).includes(event.code));
+  if (!p || p.finished || (p.control && p.control.kind !== 'key')) return;
+  event.preventDefault();
+  if (event.repeat) return;
+  autoFullscreen();
+  wakeAudio();
+  heldKeys.add(event.code);
+  if (!p.control) p.control = createControl('key');
+  rememberVector(p);
+});
+window.addEventListener('keyup',event => {
+  if (!heldKeys.has(event.code)) return;
+  const p = run?.riders.find(p => Object.values(KEYSETS[p.id]).includes(event.code));
+  if (!p || p.control?.kind !== 'key') {
+    heldKeys.delete(event.code);
+    return;
+  }
+  rememberVector(p);
+  const backKey = p.dir > 0 ? KEYSETS[p.id].left : KEYSETS[p.id].right;
+  const upKey = p.gravity > 0 ? KEYSETS[p.id].up : KEYSETS[p.id].down;
+  const fires = (event.code === backKey && p.control.lastX < 0) || (event.code === upKey && p.control.lastY < 0);
+  heldKeys.delete(event.code);
+  const any = Object.values(KEYSETS[p.id]).some(key => heldKeys.has(key));
+  if (fires || !any) {
+    letGo(p,state === 'run' && !panel);
+    if (any) p.control = createControl('key');
+  } else rememberVector(p);
+});
+window.addEventListener('blur',clearControls);
+document.addEventListener('visibilitychange',() => {
+  if (document.hidden && state === 'run' && !panel) pause();
+});
+function wakeAudio() {
+  if (save.muted) return;
+  try {
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if (!Audio) return;
+    audioContext ??= new Audio();
+    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
+  } catch (error) { /* Audio remains optional. */ }
+}
+const TONES = {
+  start:[220,330,.25], leap:[220,510,.18], breach:[180,52,.31], pair:[94,385,.48],
+  super:[272,970,.66], orb:[640,865,.16], anchor:[375,253,.13], catch:[152,660,.36],
+  reset:[160,81,.16], fade:[262,130,.24], flow:[330,495,.29], finish:[320,530,.32]
+};
+function sound(kind) {
+  if (save.muted || !audioContext || audioContext.state !== 'running') return;
+  const [from,to,duration] = TONES[kind];
+  const now = audioContext.currentTime;
+  const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  osc.type = kind === 'breach' || kind === 'pair' ? 'triangle' : 'sine';
+  osc.frequency.setValueAtTime(from,now);
+  osc.frequency.exponentialRampToValueAtTime(to,now + duration);
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.exponentialRampToValueAtTime(.115,now + .022);
+  gain.gain.exponentialRampToValueAtTime(.0001,now + duration);
+  osc.connect(gain);
+  gain.connect(audioContext.destination);
+  osc.start(now);
+  osc.stop(now + duration + .015);
+}
+function drillRule(drill) {
+  if (run.mode !== 'free') return drill.rule;
+  if (drill.id === 'catch') return 'Hold forward to ride through the ring and release its current burst.';
+  if (drill.id === 'share') return 'Release a charged breach through the ring to turn it into a current burst.';
+  if (drill.id === 'sync') return 'Release a charged breach to open your independent route.';
+  return drill.rule;
+}
+function redrawPracticeGuide() {
+  const {drill,index,count} = run.training;
+  $('drill-title').textContent = (index+1) + ' / ' + DRILLS.length + ' · ' + drill.title;
+  $('drill-rule').textContent = drillRule(drill);
+  $('drill-pips').setAttribute('aria-label',count + ' of 3 repetitions');
+  $('drill-pips').replaceChildren(...Array.from({length:3},(_,i) => {
+    const pip=document.createElement('i');
+    if (i<count) pip.classList.add('done');
+    return pip;
+  }));
+  $('drill-prev').disabled = index===0;
+  $('drill-next').textContent = index===DRILLS.length-1 ? 'Finish training' : 'Next drill';
+}
+function beginTraining(index = 0) {
+  setupRun(PRACTICE);
+  selectDrill(index);
+}
+function selectDrill(index) {
+  if (index>=DRILLS.length) {
+    state = 'results';
+    showPanel('trained');
+    return;
+  }
+  clearControls();
+  const drill=DRILLS[clamp(index,0,DRILLS.length-1)];
+  run.training={drill,index:DRILLS.indexOf(drill),count:0,repAt:-Infinity,attempts:new Map()};
+  resetTrainingPose();
+  redrawPracticeGuide();
+}
+function resetTrainingPose() {
+  const {drill}=run.training;
+  run.training.attempts.clear();
+  run.waves.length=0;
+  for (const p of run.riders) {
+    const guide = p.lane === 1 && run.mode !== 'free';
+    p.homeX=drill.id === 'draft' ? (guide ? 675 : 505) : drill.id === 'catch' ? (guide ? 640 : 550) : 575;
+    p.x=p.homeX;
+    p.y=riderSurface(p,p.x);
+    p.v=drill.id === 'super' ? 750 : ['draft','sync','share','catch'].includes(drill.id) ? 470 : 270;
+    p.flowCharge=Number(p.v>=FLOW);
+    p.machCharge=drill.id === 'super' ? 1 : p.flowCharge*.48;
+    p.tier=p.v>=FLOW ? 2 : 1;
+    p.air=false;
+    p.vy=0;
+    p.over=p.overAge=p.freeze=p.breach=p.braceFlash=0;
+    p.fx=null;
+    p.demo=null;
+    p.caught=null;
+    p.route=null;
+    p.draft=false;
+    p.trail.length=0;
+    p.track.releases.length=0;
+    if (!p.lane || run.mode==='free') {
+      const kind=drill.id==='sync' ? 'gate' : ['catch','share'].includes(drill.id) ? 'catch' : null;
+      p.track.marks=kind ? [{x:kind==='gate' ? 720 : 625,kind,lane:kind==='gate' ? -1 : p.lane,taken:new Set(),opened:false,offer:false}] : [];
+      p.track.gates=p.track.marks.filter(mark=>mark.kind==='gate');
+    }
+    if (drill.id==='catch' && !guide && run.mode!=='free') {
+      p.caught={age:0,power:380,start:410,initial:80};
+    }
+  }
+}
+function completeRepetition(p,kind,lift=0,shift=0) {
+  const training=run.training;
+  if (run.time-training.repAt < 1) return;
+  training.count++;
+  training.repAt=run.time;
+  p.demo={at:run.time,lift,shift};
+  p.air=lift>0;
+  signal(p,kind);
+  if (kind!=='super' && kind!=='catch') wave(p,kind);
+  const tone={pump:'flow',swoop:'leap',leap:'leap',breach:'breach',reset:'reset',draft:'flow',pair:'pair',share:'anchor',current:'orb'};
+  if (tone[kind]) sound(tone[kind]);
+  redrawPracticeGuide();
+}
+function releaseDrill(p,control) {
+  const active=run.training;
+  if (run.time-active.repAt<1) return;
+  const back=control.lastX<-.09;
+  const charged=back && control.pull>=.48;
+  const id=active.drill.id;
+  if (id==='swoop' && control.lastY<-.22 && !back) completeRepetition(p,'swoop',68,75);
+  if (id==='leap' && back && !charged) completeRepetition(p,'leap',72,135);
+  if (id==='breach' && charged) completeRepetition(p,'breach',0,135);
+  if (id==='share' && charged) {
+    const mark=p.track.marks[0];
+    mark.offer=true;
+    const other=partner(p);
+    if (other) {
+      other.caught={age:0,power:340,start:400,initial:85};
+      other.demo={at:run.time,lift:0,shift:60};
+      signal(other,'anchor');
+    }
+    completeRepetition(p,other ? 'share' : 'current',0,115);
+  }
+  if (id==='super' && charged) {
+    boost(p,260,{burst:true});
+    if (p.tier===3) completeRepetition(p,'super',0,170);
+  }
+  if (id==='sync' && charged) {
+    const other=partner(p);
+    const recent=other && active.attempts.get(other.id)?.release;
+    if (!other || (recent!==undefined && run.time-recent<=LINK_WINDOW)) {
+      openReinforced(p,!!other);
+      completeRepetition(p,'pair',0,105);
+      if (other) other.demo={at:run.time,lift:0,shift:105};
+    } else {
+      active.attempts.set(p.id,{release:run.time});
+      signal(p,'breach');
+      wave(p,'breach');
+      sound('breach');
+    }
+  }
+}
+function tickTraining(dt) {
+  const practice = run.training;
+  const elapsed = run.time - practice.repAt;
+  if (elapsed>=1.15 && Number.isFinite(practice.repAt)) {
+    if (practice.count>=3) selectDrill(practice.index+1);
+    else {
+      practice.repAt=-Infinity;
+      clearControls();
+      resetTrainingPose();
+    }
+    return;
+  }
+  const id=practice.drill.id;
+  for (const p of run.riders) {
+    p.freeze=Math.max(0,p.freeze-dt);
+    p.braceFlash=Math.max(0,p.braceFlash-dt);
+    if (p.demo) {
+      const progress=clamp((run.time-p.demo.at)/1.02,0,1);
+      const ripple=Math.sin(Math.PI*progress);
+      p.x=p.homeX + p.demo.shift * ripple;
+      p.y=riderSurface(p,p.x) - p.gravity*p.demo.lift*ripple;
+    }
+    const input=updateControl(p,dt);
+    if (elapsed < 1) continue;
+    if (id==='cancel' && p.control?.armed && !p.control.broken && Math.hypot(input.x,input.y)<.11) completeRepetition(p,'reset');
+    const pumping=id==='pump' && input.x>.19 && input.y>.23;
+    const drafting=id==='draft' && input.x>.36 && (!p.lane || run.mode==='free');
+    const stretching=id==='catch' && input.x>.34 && (p.lane || run.mode==='free');
+    if (!pumping && !drafting && !stretching) {
+      if (p.control) p.control.drillHold=0;
+      continue;
+    }
+    p.control.drillHold=(p.control.drillHold || 0) + dt;
+    if (drafting) p.draft=true;
+    if (stretching) {
+      p.x=p.homeX+p.control.drillHold*135;
+      p.y=riderSurface(p,p.x);
+    }
+    if (p.control.drillHold < .43) continue;
+    if (stretching && partner(p)?.caught) {
+      const caught=partner(p);
+      releaseCatch(caught,true);
+      caught.homeX=caught.x;
+      completeRepetition(caught,'catch',55,133);
+    } else if (stretching) completeRepetition(p,'current',0,110);
+    else if (drafting) completeRepetition(p,'draft',0,93);
+    else completeRepetition(p,'pump',0,55);
+  }
+}
+function formatTime(seconds) {
+  const tenths = Math.floor(seconds * 10 + .00001);
+  return Math.floor(tenths / 600) + ':' + String(Math.floor(tenths / 10) % 60).padStart(2,'0') + '.' + tenths % 10;
+}
+function chosenCourse() { return ROUTES.find(course => course.id === save.course) || ROUTES[0]; }
+function rosterHTML() {
+  return Array.from({length:MODES[save.mode].count},(_,id) =>
+    '<button type="button" data-skin="' + id + '" aria-label="Change player ' + (id+1) + ' seal, ' + skinFor(id).name +
+    '" title="P' + (id+1) + ' · ' + skinFor(id).name + ' · click to cycle"><canvas width="80" height="60" aria-hidden="true"></canvas><span>P' +
+    (id+1) + '</span></button>'
+  ).join('');
+}
+function paintRoster(root) {
+  for (const button of root.querySelectorAll('[data-skin]')) {
+    const preview=button.querySelector('canvas');
+    const drawing=preview.getContext('2d');
+    const skin=skinFor(Number(button.dataset.skin));
+    drawing.clearRect(0,0,80,60);
+    seal(40,31,1.02,1,1,-.14,skin.color,{face:skin.face,pattern:skin.pattern,fill:.78},drawing);
+  }
+}
+function cycleSkin(button) {
+  const player=Number(button.dataset.skin);
+  save.skins[player]=(save.skins[player]+1)%SKINS.length;
+  persist();
+  updateMenu();
+  if (panel==='atlas') {
+    renderPanel();
+    $('dialog').querySelector('[data-skin="'+player+'"]')?.focus();
+  } else $('menu-roster').querySelector('[data-skin="'+player+'"]')?.focus();
+}
+function updateMenu() {
+  const course = chosenCourse();
+  $('menu-selection').textContent = course.group + ' · ' + course.name;
+  $('menu-mode').textContent = MODES[save.mode].name;
+  const roster=$('menu-roster');
+  roster.innerHTML=rosterHTML();
+  paintRoster(roster);
+}
+function dialogTemplate(label, title, sub = '', closable = true) {
+  return '<header class="dialog-top"><div><p class="eyebrow">' + label + '</p><h2 id="dialog-title" tabindex="-1">' + title + '</h2>' +
+    (sub ? '<p class="sub">' + sub + '</p>' : '') + '</div>' +
+    (closable ? '<button class="icon" data-action="close" aria-label="Close">×</button>' : '') + '</header>';
+}
+function showPanel(name) {
+  if (!panel) lastFocus = document.activeElement;
+  panel = name;
+  clearControls();
+  $('menu').inert = true;
+  $('hud').inert = true;
+  $('overlay').hidden = false;
+  renderPanel();
+  $('dialog-title').focus({preventScroll:true});
+}
+function backPanel() {
+  if (panel === 'guide' && state === 'run') showPanel('pause');
+  else if (panel === 'atlas' && state === 'results') showPanel('results');
+  else closePanel();
+}
+function closePanel(restore = true) {
+  const focus = lastFocus;
+  lastFocus = null;
+  panel = '';
+  $('overlay').hidden = true;
+  $('menu').inert = false;
+  $('hud').inert = false;
+  if (restore && focus?.isConnected) focus.focus({preventScroll:true});
+}
+function pause() {
+  showPanel('pause');
+}
+function goMenu() {
+  clearControls();
+  state = 'menu';
+  run = null;
+  $('hud').hidden = true;
+  $('menu').hidden = false;
+  updateMenu();
+  closePanel(false);
+  $('start').focus({preventScroll:true});
+}
+function settingsButtons() {
+  return '<div class="settings"><button class="quiet" data-action="mute" aria-pressed="' + save.muted + '">Sound ' + (save.muted ? 'off' : 'on') +
+    '</button><button class="quiet" data-action="motion" aria-pressed="' + !save.motion + '">Reduced effects ' + (save.motion ? 'off' : 'on') + '</button>' +
+    (fullscreenRoot.requestFullscreen || fullscreenRoot.webkitRequestFullscreen ? '<button class="quiet" data-action="fullscreen" aria-pressed="' + save.fullscreen + '">Auto-fullscreen ' + (save.fullscreen ? 'on' : 'off') + '</button>' : '') + '</div>';
+}
+function renderPanel() {
+  const dialog = $('dialog');
+  dialog.classList.toggle('narrow',panel === 'pause' || panel === 'settings' || panel === 'results' || panel === 'trained');
+  dialog.scrollTop = 0;
+  if (panel === 'atlas') {
+    const types = Object.keys(MODES);
+    const groups = [...GROUPS,TRAIN];
+    dialog.innerHTML = dialogTemplate('Course atlas','Choose a current',MODES[save.mode].desc) +
+      '<div class="modes" aria-label="Player mode">' + types.map(mode => '<button class="mode" data-mode="' + mode + '" aria-pressed="' + (mode === save.mode) + '">' + MODES[mode].name + '</button>').join('') + '</div>' +
+      '<div class="roster-block"><p class="roster-note">Select a seal to cycle its look.</p><div class="roster" aria-label="Select a seal for each player">' + rosterHTML() + '</div></div>' +
+      '<div class="tabs" aria-label="Course worlds">' + groups.map(group => '<button class="tab" data-group="' + group.replaceAll('&','&amp;') + '" aria-pressed="' + (group === atlasTab) + '">' + group.replaceAll('&','&amp;') + '</button>').join('') + '</div>' +
+      (atlasTab===TRAIN ?
+        '<p class="sub">Practice each gesture three times in a fixed arena. You can repeat or skip drills.</p><div class="settings"><button class="primary" data-action="start-training">Start training</button></div>' :
+        '<div class="course-list">' + ROUTES.filter(course => course.group === atlasTab).map((course,index) => {
+          const record = save.best[course.id + ':' + save.mode];
+          return '<button class="course' + (course.next !== undefined ? ' transition' : '') + '" data-course="' + course.id + '"><span class="num">' +
+            String(index+1).padStart(2,'0') + '</span><span><strong>' + course.name + '</strong><small>' + course.desc + '</small></span>' +
+            (course.marathon ? '<span class="record" title="Marathon course' + (record ? ' · Best ' + record.toLocaleString() : '') + '">32×</span>'  :
+              (record ? '<span class="record" title="Best score">' + record.toLocaleString() + '</span>' : '')) + '</button>';
+        }).join('') + '</div>');
+    paintRoster(dialog);
+  } else if (panel === 'guide') {
+    const fromRun = state === 'run';
+    dialog.innerHTML = dialogTemplate('Field guide','Ride the current','On touch, drag from a fixed spark. Follow the arrows in your control zone.') +
+      '<div class="guide-grid">' +
+      '<article><h3>Pump &amp; swoop</h3><p>Drag forward and toward the divider on descents. Pull away on climbs. Hold to stay on the rail or release at the crest to launch.</p></article>' +
+      '<article><h3>Slingshot &amp; breach</h3><p>Pull backward. Release quickly to leap, or after the band thickens to breach. Return to the spark to cancel. An overlong hold resets.</p></article>' +
+      '<article><h3>Catch &amp; combine</h3><p>Move ahead to pull a caught teammate free. Breach through a catch to share it. Release paired breaches within half a second to open the express arc.</p></article>' +
+      '<article><h3>Super Seal</h3><p>Breach or tether-boost against the Mach wall to enter Overdrive. Collect lights and currents to extend it. The coat fills as you earn Flow, charge the Mach wall, or build remaining Overdrive time. A golden finish scores the biggest bonus.</p></article></div>' +
+      '<p class="controls-copy"><strong>Touch</strong> · P1 uses the bottom and P2 the top in two-rider play. In four-player modes, touch the opposite corner in your seal’s column.</p>' +
+      '<table class="keys"><thead><tr><th>Keyboard</th><th>Forward</th><th>Back</th><th>Pump</th><th>Swoop</th></tr></thead><tbody>' +
+      '<tr><th>P1</th><td><kbd>D</kbd></td><td><kbd>A</kbd></td><td><kbd>S</kbd></td><td><kbd>W</kbd></td></tr>' +
+      '<tr><th>P2 · 2 riders / 4 riders</th><td><kbd>→ / ←</kbd></td><td><kbd>← / →</kbd></td><td><kbd>↑ / ↓</kbd></td><td><kbd>↓ / ↑</kbd></td></tr>' +
+      '<tr><th>P3 · 4 riders</th><td><kbd>H</kbd></td><td><kbd>F</kbd></td><td><kbd>T</kbd></td><td><kbd>G</kbd></td></tr>' +
+      '<tr><th>P4 · 4 riders</th><td><kbd>J</kbd></td><td><kbd>L</kbd></td><td><kbd>I</kbd></td><td><kbd>K</kbd></td></tr></tbody></table>' +
+      '<div class="settings"><button class="primary plain" data-action="' + (fromRun ? 'back-pause' : 'start-training') + '">' + (fromRun ? 'Back to pause' : 'Start training') + '</button></div>';
+  } else if (panel === 'pause') {
+    dialog.innerHTML = dialogTemplate(run.course.name,'Paused',formatTime(run.time) + ' elapsed',true) +
+      '<div class="actions"><button class="primary plain" data-action="close">Resume</button><button class="quiet" data-action="restart">Restart</button><button class="quiet" data-action="guide">Controls</button><button class="quiet" data-action="menu">Main menu</button></div>' +
+      settingsButtons();
+  } else if (panel === 'settings') {
+    dialog.innerHTML = dialogTemplate('SuperSealStream','Settings','Sound and visual effects apply to every course.') + settingsButtons();
+  } else if (panel === 'results') {
+    const total = run.riders.reduce((sum,p) => sum + p.score,0);
+    let summary = total.toLocaleString() + ' points · ' + formatTime(run.time);
+    if (run.mode === 'teams') {
+      const left = run.riders[0].score + run.riders[2].score;
+      const right = run.riders[1].score + run.riders[3].score;
+      summary = (left === right ? 'Draw' : (left > right ? 'Left team wins' : 'Right team wins')) +
+        ' · Left ' + left.toLocaleString() + ' / Right ' + right.toLocaleString();
+    } else if (run.mode === 'free') {
+      const best = Math.max(...run.riders.map(p => p.score));
+      summary = run.riders.filter(p => p.score === best).map(p => 'P' + (p.id + 1)).join(' & ') + ' · ' + best.toLocaleString() + ' top score';
+    }
+    if (run.record) summary += ' · New local best';
+    dialog.innerHTML = dialogTemplate(run.course.name,'Run complete',summary,false) +
+      '<ul class="results">' + run.riders.map(p => '<li><b style="color:' + riderColor(p.id) + '">P' + (p.id+1) + '</b>' +
+        '<b class="result-score">' + p.score.toLocaleString() + '</b><small class="' + (p.finishTier === 3 ? 'perfect' : '') + '">' +
+        (p.finishTier === 3 ? 'Super Seal finish' : 'Tier ' + p.finishTier + ' finish') + ' · ' + formatTime(p.finishTime) + '</small></li>').join('') + '</ul>' +
+      '<div class="actions"><button class="primary" data-action="next">' + (run.course.next === 0 ? 'Start encore' : 'Next course') +
+      '</button><button class="quiet" data-action="restart">Replay</button><button class="quiet" data-action="results-atlas">Course atlas</button><button class="quiet" data-action="menu">Main menu</button></div>';
+  } else if (panel === 'trained') {
+    dialog.innerHTML = dialogTemplate('Still-water training','Training complete','Replay any drill or choose a course.',false) +
+      '<div class="actions"><button class="primary" data-action="training-atlas">Choose a course</button><button class="quiet" data-action="start-training">Replay training</button><button class="quiet" data-action="menu">Main menu</button></div>';
+  }
+}
+function showResults() {
+  if (state !== 'run') return;
+  state = 'results';
+  const key = run.course.id + ':' + run.mode;
+  const score = run.riders.reduce((sum,p) => sum + p.score,0);
+  run.record = score > (save.best[key] || 0);
+  if (run.record) {
+    save.best[key] = score;
+    persist();
+  }
+  updateHud();
+  showPanel('results');
+}
+function atlas(group = chosenCourse().group) {
+  atlasTab = group;
+  showPanel('atlas');
+}
+function currentFullscreen() {
+  return document.fullscreenElement || document.webkitFullscreenElement;
+}
+async function autoFullscreen(force = false) {
+  if (!save.fullscreen || currentFullscreen() || fullscreenPending) return;
+  if (navigator.userActivation && !navigator.userActivation.isActive) return;
+  const enter=fullscreenRoot.requestFullscreen || fullscreenRoot.webkitRequestFullscreen;
+  if (!enter || (!force && performance.now()-fullscreenAttempt<900)) return;
+  fullscreenPending=true;
+  fullscreenAttempt=performance.now();
+  try {
+    await enter.call(fullscreenRoot);
+    if (currentFullscreen() && screen.orientation?.lock) {
+      await screen.orientation.lock('landscape').catch(() => {});
+    }
+  } catch (error) { /* Some browsers only support native video fullscreen. */ }
+  finally { fullscreenPending=false; }
+}
+stage.addEventListener('click',event => {
+  if (event.isTrusted && !event.target.closest('[data-action="fullscreen"]')) autoFullscreen();
+},true);
+document.addEventListener('fullscreenchange',resize);
+document.addEventListener('webkitfullscreenchange',resize);
+window.addEventListener('pageshow',() => { if (navigator.userActivation?.isActive) autoFullscreen(); });
+$('menu-settings').addEventListener('click',() => showPanel('settings'));
+$('open-guide').addEventListener('click',() => showPanel('guide'));
+$('open-training').addEventListener('click',() => { wakeAudio(); beginTraining(); });
+$('menu-mode').addEventListener('click',() => atlas());
+$('drill-prev').addEventListener('click',() => selectDrill(run.training.index-1));
+$('drill-next').addEventListener('click',() => selectDrill(run.training.index+1));
+$('menu-roster').addEventListener('click',event => {
+  const button=event.target.closest('[data-skin]');
+  if (button) cycleSkin(button);
+});
+$('open-atlas').addEventListener('click',() => atlas());
+$('start').addEventListener('click',() => atlas());
+$('pause').addEventListener('click',pause);
+$('dialog').addEventListener('click',event => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  const {action,group,mode,course,skin} = button.dataset;
+  if (skin !== undefined) { cycleSkin(button); return; }
+  if (group || mode) {
+    if (group) atlasTab = group;
+    if (mode) {
+      save.mode = mode;
+      persist();
+      updateMenu();
+    }
+    renderPanel();
+    [...$('dialog').querySelectorAll('button')].find(el => (group && el.dataset.group === group) || (mode && el.dataset.mode === mode))?.focus();
+  }
+  if (course) {
+    wakeAudio();
+    begin(course);
+  }
+  switch (action) {
+    case 'close': backPanel(); break;
+    case 'restart':
+      wakeAudio();
+      if (run.training) beginTraining(run.training.index);
+      else begin(run.course.id,run.mastery);
+      break;
+    case 'menu': goMenu(); break;
+    case 'guide': showPanel('guide'); break;
+    case 'back-pause': showPanel('pause'); break;
+    case 'start-training': wakeAudio(); beginTraining(); break;
+    case 'training-atlas': goMenu(); atlas(); break;
+    case 'results-atlas': atlas(run.course.group); break;
+    case 'next': {
+      const last = run.course.next === 0;
+      const next = last ? ROUTES[0] : ROUTES[ROUTES.indexOf(run.course) + 1];
+      wakeAudio();
+      begin(next.id,run.mastery + Number(last));
+      break;
+    }
+    case 'mute':
+      save.muted = !save.muted;
+      persist();
+      if (!save.muted) wakeAudio();
+      renderPanel();
+      $('dialog').querySelector('[data-action="mute"]').focus();
+      break;
+    case 'motion':
+      save.motion = !save.motion;
+      persist();
+      renderPanel();
+      $('dialog').querySelector('[data-action="motion"]').focus();
+      break;
+    case 'fullscreen': {
+      save.fullscreen=!save.fullscreen;
+      persist();
+      if (save.fullscreen) autoFullscreen(true);
+      else if (currentFullscreen()) {
+        const exit=document.exitFullscreen || document.webkitExitFullscreen;
+        Promise.resolve(exit?.call(document)).catch(() => {});
+      }
+      renderPanel();
+      $('dialog').querySelector('[data-action="fullscreen"]')?.focus();
+      break;
+    }
+  }
+});
+function rgba(hex, alpha) {
+  const color = parseInt(hex.slice(1),16);
+  return 'rgba(' + ((color >> 16) & 255) + ',' + ((color >> 8) & 255) + ',' + (color & 255) + ',' + alpha + ')';
+}
+function ellipse(x,y,rx,ry,rotation = 0,drawing=ctx) {
+  drawing.beginPath();
+  drawing.ellipse(x,y,Math.max(.01,rx),Math.max(.01,ry),rotation,0,TAU);
+}
+function path(points) {
+  ctx.beginPath();
+  points.forEach(([x,y],i) => i ? ctx.lineTo(x,y) : ctx.moveTo(x,y));
+}
+function line(x0,y0,x1,y1,color,size=1,drawing=ctx) {
+  drawing.beginPath();
+  drawing.moveTo(x0,y0);
+  drawing.lineTo(x1,y1);
+  drawing.strokeStyle = color;
+  drawing.lineWidth = size;
+  drawing.stroke();
+}
+function label(text,x,y,color,size=11,align='left') {
+  ctx.font = 'bold ' + size + 'px Arial,sans-serif';
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = color;
+  ctx.fillText(text,x,y);
+}
+function pill(text,x,y,color,size=10) {
+  ctx.font = 'bold ' + size + 'px Arial,sans-serif';
+  const span = ctx.measureText(text).width + 12;
+  ctx.fillStyle = '#071522df';
+  ctx.beginPath();
+  ctx.roundRect(x - span / 2,y - size / 2 - 3,span,size + 6,5);
+  ctx.fill();
+  label(text,x,y,color,size,'center');
+}
+function makeView(left,top,w,h,zoom,x,y,dir=1,offset=.31) {
+  return {left,top,w,h,z:zoom,x,y,dir,ox:left + w * (dir === 1 ? offset : 1 - offset),oy:top + h / 2};
+}
+function worldPoint(view,x,y) {
+  return {x:view.ox + (x - view.x) * view.z * view.dir,y:view.oy + (y - view.y) * view.z};
+}
+function worldRange(v, margin = 0) {
+  const start = v.x + (v.left - v.ox) / (v.z * v.dir);
+  const end = v.x + (v.left + v.w - v.ox) / (v.z * v.dir);
+  return [Math.min(start,end) - margin,Math.max(start,end) + margin];
+}
+function clipView(v) {
+  ctx.beginPath();
+  ctx.rect(v.left,v.top,v.w,v.h);
+  ctx.clip();
+}
+function paintBackdrop(v,pal,speed=0,art=false,world=0) {
+  const {left,top,w,h} = v;
+  const gradient = ctx.createLinearGradient(0,top,0,top + h);
+  gradient.addColorStop(0,pal.top);
+  gradient.addColorStop(.36,pal.air);
+  gradient.addColorStop(.63,pal.low);
+  gradient.addColorStop(1,pal.deep);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(left,top,w,h);
+  const gx = left + w * (v.dir === 1 ? .73 : .31), gy = top + h * (art ? .32 : .41);
+  const glow = ctx.createRadialGradient(gx,gy,0,gx,gy,Math.max(w * .59,h * .64));
+  glow.addColorStop(0,rgba(pal.brim,art ? .22 : .11));
+  glow.addColorStop(1,rgba(pal.brim,0));
+  ctx.fillStyle = glow;
+  ctx.fillRect(left,top,w,h);
+
+  for (let layer=0;layer<3;layer++) {
+    const drift = v.x * (.07 + layer * .085) * v.dir;
+    const baseline = top + h * (.42 + layer * .15);
+    const frequency = Math.max(64,w * (.23 - layer * .033));
+    ctx.beginPath();
+    ctx.moveTo(left,top+h);
+    for (let dx=-5;dx<=w+12;dx+=9) {
+      const y = baseline + h * ((.09 + layer * .02) * Math.sin((dx + drift) / frequency + layer * 2.2) +
+        .048 * Math.cos((dx + drift) / (frequency * .36) + layer) + .016 * Math.sin((dx + drift) / (frequency * .17)));
+      ctx.lineTo(left+dx,y);
+    }
+    ctx.lineTo(left+w+12,top+h);
+    ctx.closePath();
+    ctx.fillStyle = rgba(layer === 0 ? pal.far : pal.near,.29 + layer * .18);
+    ctx.fill();
+    ctx.strokeStyle = rgba(pal.soft,.14);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  if (world >= 3) paintWorldAtmosphere(v,pal,world,art);
+  if (!save.motion) return;
+  const points = Math.round(clamp(w * h / 6800,18,100));
+  for (let i=0;i<points;i++) {
+    const scale = .25 + noise(i+12) * .65;
+    const horizontal = noise(i+.3) * (w+120) - v.x * scale * v.dir * (art ? .22 : .4);
+    const x = ((horizontal % (w+120)) + w+120) % (w+120) - 60 + left;
+    const y = top + noise(i+86) * h + Math.sin(v.x * .0018 + i) * h * .026;
+    const len = Math.min(w*.12,1 + (Math.max(0,speed-180) / 19 + (art ? 16 : 0)) * noise(i+.8));
+    const shade = noise(i+18) > .84 ? pal.spark : pal.brim;
+    line(x,y,x - len*v.dir,y + len*.09,rgba(shade,.11 + noise(i+53)*.39),i % 12 === 0 ? 2 : 1);
+  }
+}
+function paintWorldAtmosphere(v,pal,world,art) {
+  const {left,top,w,h}=v;
+  if (world===5) {
+    const x=left+w*(art ? .74 : .68),y=top+h*.30;
+    const radius=Math.min(h*.29,w*.22);
+    const glow=ctx.createRadialGradient(x,y,radius*.52,x,y,radius*2.4);
+    glow.addColorStop(0,'#ffca9464');glow.addColorStop(1,'#ffae6a00');
+    ctx.fillStyle=glow;ctx.fillRect(left,top,w,h);
+    ellipse(x,y,radius,radius);
+    ctx.fillStyle='#fab88d4a';ctx.fill();
+    ctx.strokeStyle='#ffe3ad68';ctx.lineWidth=1.1;ctx.stroke();
+    return;
+  }
+  const columns=world===3 ? 8 : 4;
+  for (let i=0;i<columns;i++) {
+    const move=((noise(i+33)*w-v.x*.09*v.dir)%w+w)%w;
+    const x=left+move,y=top+h*(.14+noise(i+81)*.58);
+    if (world===3) {
+      const radius=5+noise(i+13)*13;
+      ctx.beginPath();ctx.ellipse(x,y,radius,radius*.58,0,Math.PI,TAU);
+      ctx.strokeStyle=rgba(pal.brim,.24);ctx.lineWidth=1.2;ctx.stroke();
+      for (let k=-1;k<2;k++) {
+        ctx.beginPath();ctx.moveTo(x+k*3,y);
+        ctx.quadraticCurveTo(x+k*5-6,y+radius,x+k*3,y+radius*1.75);
+        ctx.strokeStyle=rgba(pal.spark,.17);ctx.stroke();
+      }
+    } else {
+      const pulse=save.motion && run ? .09+.17*(.5+.5*Math.sin(run.time*2.1+i*2.8))**9 : .11;
+      const size=h*(.09+noise(i+14)*.24);
+      const fork=[[x,y-size*.5],[x-size*.17,y],[x,y+size*.07],[x-size*.30,y+size*.67]];
+      path(fork);ctx.strokeStyle=rgba(pal.spark,pulse);ctx.lineWidth=1.4;ctx.stroke();
+      path([[x-size*.17,y],[x-size*.31,y+size*.10],[x-size*.43,y+size*.38]]);
+      ctx.strokeStyle=rgba(pal.brim,pulse*.68);ctx.stroke();
+    }
+  }
+}
+function paintForeground(v,pal,course,p) {
+  if (!save.motion) return;
+  const spacing = 225;
+  const offset = v.x * v.z * 1.44 * v.dir;
+  const reel = Math.floor(offset/spacing);
+  const edge = v.top + v.h;
+  for (let i=-1;i<=Math.floor(v.w/spacing)+2;i++) {
+    const step = i + reel;
+    const x = v.left + step * spacing - offset + 57 * noise(step+11);
+    const length = v.h * (.11 + noise(step) * .21);
+    const drift = Math.sin(step + v.x * .003) * 12 - v.dir * (p ? p.v / 14 : 11);
+    ctx.fillStyle = rgba(pal.alt,.15);
+    ctx.beginPath();
+    ctx.moveTo(x-9,edge+1);
+    ctx.bezierCurveTo(x+10,edge-length*.34,x+drift-13,edge-length*.69,x+drift,edge-length);
+    ctx.bezierCurveTo(x+drift+7,edge-length*.58,x+25,edge-length*.23,x+10,edge+1);
+    ctx.fill();
+    if (course.world === 0) {
+      for (let l=1;l<=3;l++) {
+        const f = l * .19;
+        ctx.beginPath();
+        ctx.moveTo(x+drift*f,edge - length*f);
+        ctx.quadraticCurveTo(x-31*l*.5,edge-length*(f+.22),x-27*l*.45,edge-length*(f+.34));
+        ctx.quadraticCurveTo(x-10,edge-length*(f+.31),x+drift*f,edge-length*f);
+        ctx.fill();
+      }
+    } else if (course.world === 1) {
+      ellipse(x+drift,edge-length,7,11,-.44);
+      ctx.fillStyle = rgba(pal.brim,.10);
+      ctx.fill();
+    } else if (course.world===3) {
+      ellipse(x+drift,edge-length,4,4);
+      ctx.fillStyle=rgba(pal.spark,.27);ctx.fill();
+    } else if (course.world===4) {
+      path([[x-14,edge-length*.27],[x,edge-length],[x+14,edge-length*.26],[x+6,edge+1]]);
+      ctx.closePath();ctx.strokeStyle=rgba(pal.spark,.23);ctx.stroke();
+    } else {
+      line(x-27,edge-length*.5,x+length*1.3,edge-length*.68,rgba(pal.brim,.20),2);
+    }
+  }
+}
+function railPoints(v, lane, start, end, lift = null, extra=0) {
+  const gap = Math.max(7,9 / v.z);
+  const points = [];
+  for (let x = start;x < end+gap;x += gap) {
+    const world = terrain(run.course,lane,x) + extra + (lift ? lift(x) : 0);
+    const point = worldPoint(v,x,world);
+    points.push([point.x,point.y]);
+  }
+  return points;
+}
+function lanePaint(v,pal,lanes,track) {
+  const [start,end] = worldRange(v,26);
+  const base = worldPoint(v,v.x,0).y;
+  if (base > v.top && base < v.top + v.h) {
+    ctx.setLineDash([2,8]);
+    line(v.left,base,v.left+v.w,base,rgba(pal.brim,.26));
+    ctx.setLineDash([]);
+  }
+  for (const lane of lanes) {
+    const sign = lane ? -1 : 1;
+    const points = railPoints(v,lane,start,end);
+    const second = railPoints(v,lane,start,end,null,sign * 22).reverse();
+    path([...points,...second]);
+    ctx.closePath();
+    ctx.fillStyle = rgba(pal.water,.68);
+    ctx.fill();
+    const third = railPoints(v,lane,start,end,null,sign * (48 + 5 * lane));
+    path(third);
+    ctx.strokeStyle = rgba(pal.alt,.23);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    path(points);
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = rgba(pal.alt,.27);
+    ctx.lineWidth = 10;
+    ctx.stroke();
+    ctx.strokeStyle = rgba(pal.brim,.39);
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.strokeStyle = rgba(pal.brim,lane ? .72 : .98);
+    ctx.lineWidth = 1.25;
+    ctx.stroke();
+  }
+  for (const mark of track.marks) {
+    if (mark.kind !== 'gate' || mark.x > end || mark.x + 670 < start) continue;
+    const endRoute = Math.min(mark.x+660,run.course.length-50);
+    for (const lane of lanes) {
+      const sign = lane ? 1 : -1;
+      const lift = x => sign * 112 * (Math.sin(Math.PI * clamp((x - mark.x) / (endRoute - mark.x),0,1)) ** 2);
+      const points = railPoints(v,lane,mark.x,endRoute,lift);
+      path(points);
+      ctx.setLineDash(mark.opened ? [] : [3,8]);
+      ctx.strokeStyle = mark.opened ? '#ffe4a79c' : rgba(pal.spark,.27);
+      ctx.lineWidth = mark.opened ? 3 : 1;
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+function diamond(x,y,radius,color,fill='transparent') {
+  path([[x,y-radius],[x+radius,y],[x,y+radius],[x-radius,y]]);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+const HAZARDS = {bump:['#ff929c','Coral'],orb:['#9effd6','Light'],catch:['#83dfff','Catch'],current:['#81ffdf','Current'],gate:['#ffe7a0','Gate'],wall:['#ffc0f5','Wall']};
+function drawFeature(v,mark,lane) {
+  const entry = HAZARDS[mark.kind];
+  const color = entry[0];
+  const z = clamp(v.z,.48,1);
+  const gravity = lane ? -1 : 1;
+  const {x,y} = worldPoint(v,mark.x,terrain(run.course,lane,mark.x) - gravity * 12);
+  if (mark.kind === 'orb') {
+    const drift = Math.sin(run.time * 3 + mark.x) * 3 * z;
+    ellipse(x,y - gravity*7*z + drift,11*z,11*z);
+    ctx.fillStyle = rgba(color,.16);ctx.fill();
+    diamond(x,y - gravity*7*z + drift,5*z,color,rgba(color,.55));
+  } else if (mark.kind === 'catch') {
+    const r = (10 + Math.sin(run.time*4 + mark.x)*1.9)*z;
+    ellipse(x,y,r+5*z,r+5*z);
+    ctx.strokeStyle = rgba(color,.27);ctx.lineWidth=1;ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x,y,r,run.time*1.3,run.time*1.3+Math.PI*1.72);
+    ctx.strokeStyle = color;ctx.lineWidth=2;ctx.stroke();
+    diamond(x,y,3*z,color,rgba(color,.37));
+  } else if (mark.kind === 'wall' || mark.kind === 'gate') {
+    if (mark.opened) return;
+    const size = (mark.kind === 'gate' ? 29 : 24)*z;
+    for (let i=-1;i<=1;i++) {
+      const dx=i*8*z;
+      path([[x+dx-5*z,y+gravity*12*z],[x+dx-3*z,y-gravity*size*.57],[x+dx+2*z,y-gravity*(size-7*z*Math.abs(i))],
+        [x+dx+6*z,y-gravity*size*.43],[x+dx+4*z,y+gravity*12*z]]);
+      ctx.closePath();
+      ctx.fillStyle=rgba(color,.23);ctx.fill();
+      ctx.strokeStyle=rgba(color,.79);ctx.lineWidth=1.1;ctx.stroke();
+    }
+  } else if (mark.kind === 'bump') {
+    for (let i=-1;i<=1;i++) {
+      ellipse(x+i*5*z,y+gravity*(1+2*Math.abs(i))*z,5*z,8*z,i*.43);
+      ctx.fillStyle=rgba(color,.7);ctx.fill();
+    }
+  } else {
+    for (let i=0;i<3;i++) {
+      const bx=x+i*7*z*v.dir-7*z*v.dir;
+      path([[bx-4*z*v.dir,y-7*z],[bx+2*z*v.dir,y],[bx-4*z*v.dir,y+7*z]]);
+      ctx.strokeStyle=rgba(color,.75);ctx.lineWidth=1.6;ctx.stroke();
+    }
+  }
+}
+function showFinish(v,lanes) {
+  const end = run.course.length;
+  const base = worldPoint(v,end,v.y).x;
+  if (base < v.left-24 || base > v.left+v.w+24) return;
+  for (const lane of lanes) {
+    const {x,y} = worldPoint(v,end,terrain(run.course,lane,end));
+    const z = clamp(v.z,.42,1);
+    const sign = lane ? 1 : -1;
+    line(x,y,x,y+sign*96*z,'#f4fff6c8',1.5);
+    for (let row=0;row<4;row++) for (let col=0;col<4;col++) {
+      ctx.fillStyle=(col+row)%2 ? '#0c2033' : '#ecfbf4';
+      ctx.fillRect(x + col*5*z*v.dir,y + sign*(91-row*5)*z,5*z,5*z);
+    }
+  }
+}
+function seal(x,y,scale,facing,gravity,angle,color,opts={},drawing=ctx) {
+  drawing.save();
+  drawing.translate(x,y);
+  drawing.rotate(angle);
+  if (save.motion) drawing.translate(0,opts.shake || 0);
+  drawing.scale(scale*facing,scale*gravity);
+  const stretch=opts.stretch || 0;
+  drawing.scale(1+stretch,.999-stretch*.53);
+  if (opts.super) {
+    const aura=drawing.createRadialGradient(0,0,4,0,0,43);
+    aura.addColorStop(0,'#fff7cce8');
+    aura.addColorStop(.42,'#ffd175ab');
+    aura.addColorStop(1,'#f7ac4100');
+    drawing.fillStyle=aura;
+    drawing.fillRect(-43,-43,86,86);
+    drawing.fillStyle='#ffc767a9';
+    drawing.beginPath();
+    for (let i=0;i<32;i++) {
+      const angle=i*TAU/32;
+      const radius=i%2 ? 19 : 28+8*Math.sin(i*1.8+(opts.spin || 0));
+      const px=Math.cos(angle)*radius,py=Math.sin(angle)*radius;
+      i ? drawing.lineTo(px,py) : drawing.moveTo(px,py);
+    }
+    drawing.closePath();
+    drawing.fill();
+  }
+  drawing.fillStyle=colorMix(color,'#19324d',.44);
+  drawing.beginPath();
+  drawing.moveTo(-14,1);drawing.bezierCurveTo(-24,-1,-31,-13,-31,-8);drawing.bezierCurveTo(-35,1,-26,6,-24,6);
+  drawing.bezierCurveTo(-30,8,-28,14,-25,12);drawing.quadraticCurveTo(-20,11,-11,5);drawing.closePath();drawing.fill();
+
+  const skin=drawing.createLinearGradient(0,-15,0,15);
+  const base=colorMix(color,'#587285',opts.tier===2 ? .35 : .59);
+  skin.addColorStop(0,colorMix(base,'#ffffff',.32));
+  skin.addColorStop(1,colorMix(base,'#193451',.37));
+  drawing.fillStyle=skin;
+  drawing.beginPath();
+  drawing.moveTo(-27,4);drawing.bezierCurveTo(-20,-5,-7,-8,2,-8);
+  drawing.bezierCurveTo(5,-8,6,-15,14,-15);drawing.bezierCurveTo(21,-15,27,-11,26,-6);
+  drawing.bezierCurveTo(33,-5,34,2,27,4);drawing.bezierCurveTo(21,11,11,13,1,12);
+  drawing.bezierCurveTo(-13,11,-20,8,-27,4);
+  drawing.bezierCurveTo(-30,4,-34,-1,-32,-8);
+  drawing.bezierCurveTo(-29,-6,-25,-2,-23,-1);
+  drawing.closePath();drawing.fill();
+  drawing.strokeStyle=colorMix(color,'#ffffff',opts.tier>=2 ? .6 : .29);
+  drawing.lineWidth=opts.tier>=2 ? 1.1 : .65;
+  drawing.stroke();
+  drawing.save();
+  drawing.clip();
+  const fill=clamp(opts.fill ?? .7,0,1);
+  const start=-35;
+  const span=69;
+  const boundary=start+span*fill;
+  const coat=drawing.createLinearGradient(0,-15,0,14);
+  coat.addColorStop(0,colorMix(color,'#ffffff',opts.tier===3 ? .82 : .51));
+  coat.addColorStop(.48,opts.tier===3 ? colorMix(color,'#ffe79b',.62) : color);
+  coat.addColorStop(1,colorMix(color,opts.tier===3 ? '#ffbe65' : '#153247',.43));
+  drawing.scale(facing,1);
+  drawing.fillStyle=coat;
+  drawing.fillRect(start,-19,span*fill,38);
+  if (fill>.015 && fill<.985) {
+    drawing.fillStyle='#fff9d694';
+    drawing.fillRect(boundary-1.2,-18,1.2,36);
+  }
+  drawing.scale(facing,1);
+
+  if (opts.pattern===1) {
+    for (const [cx,cy,r] of [[-7,-5,2.4],[-14,0,1.9],[1,0,1.6],[8,-6,1.9]]) {
+      ellipse(cx,cy,r,r,0,drawing);
+      drawing.fillStyle='#263e5059';drawing.fill();
+    }
+  } else if (opts.pattern===2) {
+    drawing.fillStyle='#f3fffb60';
+    drawing.beginPath();drawing.moveTo(-26,6);drawing.quadraticCurveTo(-7,1,10,6);
+    drawing.quadraticCurveTo(23,5,30,1);drawing.lineTo(29,19);drawing.lineTo(-30,19);drawing.closePath();drawing.fill();
+  } else if (opts.pattern===3) {
+    for (let i=0;i<3;i++) line(-17+8*i,9,-10+i*8,-10,'#6b4e6b6e',2.7,drawing);
+  } else if (opts.pattern===4) {
+    drawing.fillStyle='#eefffc9a';
+    for (let i=0;i<4;i++) {
+      ellipse(-14+i*6,-2+Math.cos(i)*2,1.3,1.3,0,drawing);
+      drawing.fill();
+    }
+  }
+
+  const event=opts.effect;
+  if (event) {
+    const alpha=clamp(opts.strength ?? 1,0,1);
+    drawing.globalAlpha*=.72*alpha;
+    drawing.strokeStyle=['breach','wall','pair','mach','super'].includes(event) ? '#fff1b4' : '#e1ffff';
+    drawing.fillStyle=drawing.strokeStyle;
+    if (event==='breach' || event==='wall' || event==='pair' || event==='mach') {
+      const bolts=event==='pair' ? 2 : 1;
+      for(let i=0;i<bolts;i++) {
+        const y=(i-.5)*7;
+        drawing.beginPath();drawing.moveTo(-27,y+3);drawing.lineTo(-11,y-1);
+        drawing.lineTo(-15,y+8);drawing.lineTo(2,y+1);drawing.lineTo(0,y+8);drawing.lineTo(20,y-9);
+        drawing.lineWidth=event==='mach' ? .85 : 1.65;drawing.stroke();
+      }
+      if (event==='wall') {
+        for(let i=0;i<3;i++) line(-9+i*8,-8,-15+i*8,8,'#ffeeb1',.9,drawing);
+      }
+    } else if (['catch','anchor','share','reset'].includes(event)) {
+      const rings=event==='share' ? [-11,8] : [-6];
+      for(const x of rings) {
+        ellipse(x,1,event==='reset' ? 5 : 8,event==='reset' ? 4 : 8,0,drawing);
+        drawing.lineWidth=1.6;drawing.stroke();
+        ellipse(x,1,2.6,2.6,0,drawing);drawing.fill();
+      }
+      if (event==='catch') line(-23,1,18,1,'#d4feff',1.2,drawing);
+    } else if (event==='orb' || event==='super' || event==='finish' || event==='bump' || event==='fade') {
+      const height=event==='super' ? 7 : event==='bump' ? 2 : 4;
+      for (let i=0;i<4;i++) {
+        const px=-15+i*10,py=3*Math.sin(i+1);
+        drawing.beginPath();drawing.moveTo(px,py-height);drawing.lineTo(px+2.4,py);drawing.lineTo(px,py+height);
+        drawing.lineTo(px-2.4,py);drawing.closePath();
+        if(event==='fade') drawing.stroke(); else drawing.fill();
+      }
+    } else if (event==='swoop' || event==='leap' || event==='pump') {
+      for(let i=0;i<3;i++) {
+        const flip=event==='pump' ? -1 : 1;
+        drawing.beginPath();drawing.moveTo(-23,3+i*4*flip);
+        drawing.quadraticCurveTo(-5,2+i*4*flip,12,-5-i*4*flip);
+        drawing.lineWidth=event==='leap' ? 1.6 : 1.1; drawing.stroke();
+      }
+    } else {
+      for (let i=0;i<3;i++) {
+        const x=-19+i*10;
+        drawing.beginPath();drawing.moveTo(x-4,-5);drawing.lineTo(x+3,0);drawing.lineTo(x-4,5);
+        drawing.lineWidth=event==='flow' ? 1.9 : 1.3;drawing.stroke();
+      }
+    }
+  }
+  drawing.restore();
+  drawing.fillStyle=colorMix(color,'#122d44',.48);
+  drawing.beginPath();drawing.moveTo(5,5);drawing.bezierCurveTo(6,9,-9,17,-12,13);drawing.quadraticCurveTo(-10,8,0,5);drawing.fill();
+  drawing.fillStyle='#122735';
+  if ((opts.face || 0)%2) {
+    drawing.beginPath();drawing.arc(17,-7,2.15,.02,Math.PI*.94);
+    drawing.strokeStyle='#122735';drawing.lineWidth=1.2;drawing.stroke();
+  } else {
+    ellipse(17,-7,1.6,1.65,0,drawing);drawing.fill();
+  }
+  ellipse(27,-3,2.25,1.35,-.14,drawing);drawing.fill();
+  if ((opts.face || 0)<2) {
+    line(25,1,34,-.2,'#182f3e',.55,drawing);
+    line(25,2.3,34,3.1,'#182f3e',.55,drawing);
+  } else line(13,-11,18,-11.5,'#182f3e',.7,drawing);
+  drawing.restore();
+}
+function drawWave(v,w,palette) {
+  const {x,y}=worldPoint(v,w.x,w.y);
+  const age=w.age;
+  const fade=Math.max(0,1-age/1.13);
+  const z=clamp(v.z,.38,1.15);
+  if (x<v.left-620*z || x>v.left+v.w+620*z || y<v.top-420*z || y>v.top+v.h+420*z) return;
+  const gold=['super','pair','mach','wall','finish','arc'].includes(w.kind);
+  const color=gold ? '#ffe2a0' : ['catch','share','anchor'].includes(w.kind) ? '#87dcff' : riderColor(w.id);
+  const direction=v.dir;
+  const sign=w.lane ? 1 : -1;
+  const r=(14+age*(gold ? 235 : 126))*z;
+  ctx.save();
+  const inherited=ctx.globalAlpha;
+  ctx.globalAlpha=inherited*(save.motion ? fade : fade*.55);
+  if (w.kind==='pair') {
+    const [start,end]=worldRange(v);
+    for (let lane=0;lane<2;lane++) {
+      const range=70+age*1950;
+      if (w.x+range<start || w.x-range>end) continue;
+      const points=railPoints(v,lane,Math.max(start,w.x-range),Math.min(end,w.x+range),null,lane ? 7 : -7);
+      path(points);
+      ctx.strokeStyle=rgba('#ffb965',.55);ctx.lineWidth=9;ctx.stroke();
+      ctx.strokeStyle='#fff0b9';ctx.lineWidth=2.4;ctx.stroke();
+    }
+  }
+  if (w.kind==='super' || w.kind==='finish') {
+    const flare=ctx.createRadialGradient(x,y,0,x,y,Math.max(1,r*1.5));
+    flare.addColorStop(0,rgba('#fff9e4',.85*Math.max(0,1-age*2.7)));
+    flare.addColorStop(.43,rgba('#ffdf9b',.24));
+    flare.addColorStop(1,rgba('#ffc65a',0));
+    ctx.fillStyle=flare;ctx.fillRect(x-r*1.5,y-r*1.5,r*3,r*3);
+    for (let i=0;i<12;i++) {
+      const theta=i*TAU/12+.23;
+      line(x+Math.cos(theta)*r*.52,y+Math.sin(theta)*r*.52,x+Math.cos(theta)*r*(1.15+noise(i)),
+        y+Math.sin(theta)*r*(1.15+noise(i)),i%2 ? color : '#fffceb',2*z);
+    }
+    ellipse(x,y,r,r*.75);
+    ctx.strokeStyle='#fff0bf';ctx.lineWidth=2.5*z;ctx.stroke();
+  } else if (['breach','wall','mach','pair'].includes(w.kind)) {
+    for (let i=0;i<9;i++) {
+      const theta=i*TAU/9;
+      const rx=Math.cos(theta)*r,ry=Math.sin(theta)*r*.59;
+      path([[x+rx*.35,y+ry*.28],[x+rx*.64,y+ry*.69-7*z],[x+rx*.56+7*z,y+ry*.62],[x+rx*1.12,y+ry]]);
+      ctx.strokeStyle=i%2 ? color : '#efffff';ctx.lineWidth=(i%3===0 ? 2.1 : 1)*z;ctx.stroke();
+    }
+  } else if (w.kind==='catch' || w.kind==='anchor' || w.kind==='share' || w.kind==='reset') {
+    for (let i=0;i<3;i++) {
+      const s=(w.kind==='reset' ? 1.11-age : .58+age)*r*(.54+i*.24);
+      ellipse(x+i*8*direction*z,y,s,s*.65);
+      ctx.strokeStyle=i===1 ? '#f6ffff' : color;ctx.lineWidth=1.4*z;ctx.stroke();
+    }
+    if (w.kind==='share') {
+      diamond(x+r*.52*direction,y-r*.47*sign,6*z,color,'#173548');
+      diamond(x+r*.25*direction,y+r*.61*sign,5*z,color,'#173548');
+    }
+  } else if (w.kind==='swoop' || w.kind==='leap' || w.kind==='pump') {
+    for (let i=0;i<3;i++) {
+      ctx.beginPath();
+      ctx.moveTo(x-r*.5*direction,y+i*4*z);
+      ctx.quadraticCurveTo(x+r*.46*direction,y+sign*r*(.18+i*.11),x+r*direction,y+sign*r*.63);
+      ctx.strokeStyle=i===0 ? '#f5ffff' : color;ctx.lineWidth=(i===0 ? 2.3 : 1.1)*z;ctx.stroke();
+    }
+  } else if (w.kind==='orb' || w.kind==='bump' || w.kind==='fade') {
+    for (let i=0;i<7;i++) {
+      const t=i*TAU/7;
+      const k=.48+noise(i+25)*.57;
+      diamond(x+Math.cos(t)*r*k,y+Math.sin(t)*r*k,Math.max(1,4*z*(1-age*.55)),
+        w.kind==='bump' ? '#f3aca4' : color,'transparent');
+    }
+  } else {
+    for (let i=0;i<5;i++) {
+      const px=x+(r*.70+i*16*z)*direction,py=y+(i-2)*6*z;
+      path([[px-9*z*direction,py-6*z],[px,py],[px-9*z*direction,py+6*z]]);
+      ctx.strokeStyle=i%2 ? '#f3ffff' : palette.brim;ctx.lineWidth=1.8*z;ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function visiblePose(p) {
+  return p.freeze > 0 && p.pose && save.motion ? p.pose : p;
+}
+function drawTrail(v,p) {
+  if (p.finished || !save.motion || (p.tier === 1 && !p.draft && !p.breach) || p.trail.length < 2 || p.freeze > 0) return;
+  const shade = p.tier === 3 ? '#ffda85' : riderColor(p.id);
+  const head = visiblePose(p);
+  let last = worldPoint(v,head.x,head.y);
+  for (let i=0;i<p.trail.length;i++) {
+    const sample = p.trail[i];
+    const point = worldPoint(v,sample.x,sample.y);
+    const fade = (1 - i / p.trail.length) ** 1.45;
+    line(last.x,last.y,point.x,point.y,rgba(shade,fade*.38),1+fade*(p.tier === 3 ? 8 : 5));
+    line(last.x,last.y,point.x,point.y,rgba('#effff7',fade*.55),1);
+    last = point;
+  }
+}
+function drawBody(v,p) {
+  const pose=visiblePose(p);
+  const point=worldPoint(v,pose.x,pose.y);
+  if (point.x<v.left-56 || point.x>v.left+v.w+56 || point.y<v.top-57 || point.y>v.top+v.h+57) return;
+  const x=point.x,y=point.y;
+  const scale=clamp(v.z*1.16,.46,1.14);
+  const input=p.control && !p.control.broken && !p.air ? p.control : null;
+  const charge=input ? smooth(input.pull/1.22) : 0;
+  const pressure=input ? Math.max(0,input.lastY) : 0;
+  const shaking=charge>.83 ? Math.sin(run.time*112)*charge*3.3 : p.braceFlash ? Math.sin(run.time*98)*p.braceFlash*14 : 0;
+  const grade=slope(run.course,p.lane,pose.x);
+  const angle=clamp(Math.atan((p.air ? p.vy/Math.max(p.v,100) : grade)*v.dir),-.68,.68);
+  const skin=skinFor(p.id);
+  if (input && input.lastX<-.001) {
+    const band=(25+Math.abs(input.lastX)*158)*(1-charge*.79)*scale;
+    const tx=x-band*v.dir,ty=y-input.lastY*band*.4*p.gravity;
+    const shade=charge>.33 ? '#ffdc94' : skin.color;
+    const ribbon=ctx.createLinearGradient(tx,0,x,0);
+    ribbon.addColorStop(0,rgba(shade,.18+charge*.22));
+    ribbon.addColorStop(.74,rgba(shade,.45+charge*.33));
+    ribbon.addColorStop(1,'#fff6c7ab');
+    ctx.beginPath();
+    ctx.moveTo(x+v.dir*scale*8,y-8*scale);
+    ctx.bezierCurveTo(x-band*.37*v.dir,y-16*scale,tx,ty-10*scale,tx,ty-3*scale);
+    ctx.bezierCurveTo(tx,ty+9*scale,x-band*.38*v.dir,y+14*scale,x+v.dir*scale*8,y+7*scale);
+    ctx.fillStyle=ribbon;ctx.fill();
+    ctx.strokeStyle=shade;ctx.lineWidth=1.8+charge*5.9;ctx.stroke();
+    ellipse(tx,ty,6*scale+charge*2,6*scale+charge*2);
+    ctx.fillStyle='#effff3d9';ctx.fill();
+    if (charge<.73) {
+      const tip=x+(band*.42+25*scale)*v.dir;
+      const aimY=y+input.lastY*band*.27*p.gravity;
+      path([[tip-v.dir*15*scale,aimY-8*scale],[tip,aimY],[tip-v.dir*15*scale,aimY+8*scale]]);
+      ctx.strokeStyle=rgba(shade,.87);ctx.lineWidth=2.25*scale;ctx.stroke();
+    }
+  }
+  if (pressure>.15) {
+    for (let i=0;i<3;i++) {
+      const r=(17+i*7)*scale;
+      ctx.beginPath();
+      ctx.ellipse(x,y+(8+i*3)*scale*p.gravity,r,5*scale,angle,p.gravity>0 ? 0 : Math.PI,p.gravity>0 ? Math.PI : TAU);
+      ctx.strokeStyle=rgba(skin.color,pressure*(.85-i*.16));ctx.lineWidth=2*scale;ctx.stroke();
+    }
+  }
+  if (p.draft) {
+    for (let i=0;i<4;i++) {
+      const c=x-(29+i*11)*scale*v.dir;
+      path([[c-6*scale*v.dir,y-6*scale],[c,y],[c-6*scale*v.dir,y+6*scale]]);
+      ctx.strokeStyle=rgba('#aefbf6',.84-i*.14);ctx.lineWidth=2*scale;ctx.stroke();
+    }
+  }
+  const effectAge=p.fx ? run.time-p.fx.at : Infinity;
+  const effect=effectAge<.95 ? p.fx.kind : p.caught ? 'anchor' : p.draft ? 'draft' : pressure>.2 ? 'pump' : null;
+  const fill=p.tier===3 ? p.over/10 : p.tier===2 ? p.machCharge : p.flowCharge;
+  seal(x,y,scale,v.dir,p.gravity,angle,skin.color,{
+    face:skin.face,pattern:skin.pattern,tier:p.tier,fill,super:p.tier===3,
+    stretch:clamp((p.v-FLOW)/2900+pressure*.17-charge*.17,-.16,.31),
+    effect,strength:effectAge<.95 ? 1-effectAge*.72 : .73,shake:shaking,spin:save.motion ? run.time*12 : 0
+  });
+  if (p.caught) {
+    for (let i=0;i<2;i++) {
+      ellipse(x,y,(26+i*7)*scale,(19+i*6)*scale);
+      ctx.strokeStyle=i ? '#8ce7ff60' : '#d4faff';
+      ctx.lineWidth=i ? 1.1 : 1.9;
+      ctx.stroke();
+    }
+    diamond(x,y+p.gravity*27*scale,5*scale,'#baf6ff','#15405a');
+  }
+}
+const MAP_SYMBOLS={bump:'◆',catch:'◎',current:'»',gate:'▤',wall:'ϟ',finish:'⚑'};
+function edgeHint(v,p) {
+  if (run.training || p.finished || v.w<155) return;
+  const [,end]=worldRange(v);
+  const marks=p.track.marks;
+  const first=markIndex(marks,end+8);
+  let feature=null;
+  for (let i=first;i<marks.length && marks[i].x-p.x<1500;i++) {
+    const mark=marks[i];
+    if (!mark.taken.has(p.id) && !mark.opened && mark.kind!=='orb' &&
+        (mark.lane<0 || mark.lane===p.lane || (mark.kind==='catch' && mark.offer))) {
+      feature=mark;
+      break;
+    }
+  }
+  const position=feature ? feature.x : run.course.length;
+  if (position<=end+8 || position-p.x>1500) return;
+  const kind=feature ? feature.kind : 'finish';
+  const color=feature ? HAZARDS[kind][0] : '#f8fff4';
+  const intensity=1-clamp((position-end)/1150,0,1);
+  const x=v.dir===1 ? v.left+v.w-28 : v.left+28;
+  const trigger=worldPoint(v,position,terrain(run.course,p.lane,position)).y;
+  const y=clamp(trigger+(p.lane ? 12 : -12),v.top+43,v.top+v.h-24);
+  ctx.save();
+  ctx.globalAlpha*=.54+.46*intensity;
+  pill((v.dir<0 ? '‹ ' : '')+MAP_SYMBOLS[kind]+(v.dir>0 ? ' ›' : ''),x,y,color,12+6*intensity);
+  ctx.restore();
+}
+function drawCurrentView(v,riders,pal,withPartner=true) {
+  ctx.save();
+  clipView(v);
+  const track=riders[0].track;
+  const lanes=riders.map(p => p.lane);
+  const speed=riders.reduce((sum,p) => sum+p.v,0)/riders.length;
+  const visualWorld=run.course.next!==undefined && v.x/run.course.length>.82 ? run.course.next : run.course.world;
+  paintBackdrop(v,pal,speed,false,visualWorld);
+  lanePaint(v,pal,lanes,track);
+  const [start,end]=worldRange(v,32);
+  for (let i=markIndex(track.marks,start);i<track.marks.length;i++) {
+    const mark=track.marks[i];
+    if (mark.x>end) break;
+    for (const p of riders) {
+      if (!mark.taken.has(p.id) && (mark.lane<0 || mark.lane===p.lane || (mark.kind==='catch' && mark.offer))) drawFeature(v,mark,p.lane);
+    }
+  }
+  if (!run.training) showFinish(v,lanes);
+  run.waves.filter(w => w.track===track).forEach(w => drawWave(v,w,pal));
+  paintForeground(v,pal,{world:visualWorld},riders[0]);
+  if (run.training?.drill.id==='draft') drawDraftGuide(v,riders);
+  riders.forEach(p => drawTrail(v,p));
+  if (withPartner && riders.length === 2) {
+    const points=riders.map(p => worldPoint(v,visiblePose(p).x,visiblePose(p).y));
+    drawTether(points[0],points[1],riders.some(p => p.caught),false);
+  }
+  riders.forEach(p => {
+    drawBody(v,p);
+    edgeHint(v,p);
+  });
+  ctx.restore();
+}
+function drawDraftGuide(v,riders) {
+  for (const p of riders) {
+    if (p.lane && run.mode!=='free') continue;
+    const target=p.homeX+158;
+    const pos=worldPoint(v,target,riderSurface(p,target));
+    ctx.save();
+    ctx.globalAlpha*=.49;
+    seal(pos.x,pos.y,clamp(v.z,.44,1),v.dir,p.gravity,.10,'#b7e9ed',{fill:.94,tier:2});
+    ctx.restore();
+    const left=worldPoint(v,target-140,riderSurface(p,target-140));
+    for (let i=0;i<4;i++) {
+      const x=mix(left.x,pos.x,(i+1)/5),y=mix(left.y,pos.y,(i+1)/5);
+      path([[x-7*v.dir,y-5],[x,y],[x-7*v.dir,y+5]]);
+      ctx.strokeStyle='#9edee98c';ctx.lineWidth=1.4;ctx.stroke();
+    }
+  }
+}
+function drawTether(a,b,taut,cross) {
+  if (!a || !b) return;
+  const dx=b.x-a.x,dy=b.y-a.y;
+  if (Math.hypot(dx,dy) < 18) return;
+  const color=taut ? '#ffdb95' : '#92e7f6';
+  const bend=taut ? 4 : Math.min(45,Math.hypot(dx,dy)*.10);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(a.x,a.y);
+  ctx.bezierCurveTo(a.x+dx*.35,a.y+dy*.13+bend,a.x+dx*.69,a.y+dy*.88+bend,b.x,b.y);
+  ctx.setLineDash(taut ? [] : [4,6]);
+  ctx.strokeStyle=rgba(color,taut ? .84 : cross ? .38 : .51);
+  ctx.lineWidth=taut ? 2 : 1;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  if (taut) {
+    const t=save.motion ? (run.time*1.8)%1 : .58;
+    const inv=1-t;
+    const x=inv**3*a.x+3*inv*inv*t*(a.x+dx*.35)+3*inv*t*t*(a.x+dx*.69)+t**3*b.x;
+    const y=inv**3*a.y+3*inv*inv*t*(a.y+dy*.13+bend)+3*inv*t*t*(a.y+dy*.88+bend)+t**3*b.y;
+    diamond(x,y,4,'#fff4d3','#facb80');
+  }
+  if (cross) {
+    const midpoint={x:(a.x+b.x)/2,y:(a.y+b.y)/2+bend*.30};
+    diamond(midpoint.x,midpoint.y,4,rgba(color,.76),'#142d40');
+  }
+  ctx.restore();
+}
+function horizonIndicator(v,pal) {
+  const horizon = worldPoint(v,v.x,0).y;
+  if (horizon >= v.top+18 && horizon <= v.top+v.h-18) return;
+  const upwards = horizon < v.top+18;
+  const x = v.left + v.w * (v.dir > 0 ? .72 : .28);
+  const y = upwards ? v.top + 16 : v.top + v.h - 14;
+  pill(upwards ? '↑ ≈' : '↓ ≈',x,y,pal.brim,10);
+}
+function directedTether(views,a,b) {
+  const list=[a,b].map(p => {
+    const view=views[p.id];
+    const pose=visiblePose(p);
+    const point=worldPoint(view,pose.x,pose.y);
+    return {x:clamp(point.x,view.left+8,view.left+view.w-8),y:clamp(point.y,view.top+8,view.top+view.h-8)};
+  });
+  drawTether(list[0],list[1],a.caught || b.caught,true);
+  const gap = b.x - a.x;
+  if (Math.abs(gap) < 90) return;
+  [a,b].forEach((p,i) => {
+    const v = views[p.id];
+    const dir = Math.sign((i ? -gap : gap) * v.dir);
+    const buddy = i ? a : b;
+    const point = list[i];
+    const x = clamp(point.x + dir * 67,v.left+36,v.left+v.w-36);
+    const y = clamp(point.y,v.top+37,v.top+v.h-21);
+    pill(dir > 0 ? '● ›' : '‹ ●',x,y,riderColor(buddy.id),11);
+  });
+}
+function controlBadges(four) {
+  if (!run.training && !four && run.time>8) return;
+  for (const p of run.riders) {
+    const bottom=p.lane===0;
+    const right=four && p.id%2===1;
+    const x=right ? width-30 : 30;
+    const y=four ? (bottom ? height*.5+17 : height*.5-17) : bottom ? height-25 : 58;
+    const text=(right ? '‹ ' : '')+'P'+(p.id+1)+(right ? '' : ' ›');
+    pill(text,x,y,riderColor(p.id),10);
+  }
+}
+function originSparks() {
+  for (const p of run.riders) {
+    const c=p.control;
+    if (c?.kind!=='pointer') continue;
+    const x=c.originX,y=c.originY;
+    if (!c.broken) {
+      ellipse(x,y,7+(save.motion ? Math.sin(run.time*7)*1.5 : 0),7);
+      ctx.strokeStyle=rgba(riderColor(p.id),.65);ctx.lineWidth=1;ctx.stroke();
+    }
+    diamond(x,y,3,rgba(riderColor(p.id),c.broken ? .36 : 1),c.broken ? '#142537' : '#dffff6');
+  }
+}
+function viewTargets(dt) {
+  const riders=run.riders;
+  const two=riders.length===2;
+  const anyLive=riders.filter(p => !p.finished);
+  const focus=anyLive.length ? anyLive : riders;
+  const avgV=focus.reduce((sum,p) => sum + p.v,0)/focus.length;
+  const mean=focus.reduce((sum,p) => sum + p.x,0)/focus.length;
+  const delta=Math.abs(riders[0].x-riders[1].x);
+  const elevation=Math.max(...riders.map(p => Math.max(Math.abs(visiblePose(p).y),Math.abs(terrain(run.course,p.lane,p.x+260))*.87)));
+  const baseZoom=clamp(height/480,.51,1.26);
+  const comfortable=clamp(baseZoom * (1.12-avgV/2700),.42,1.28);
+  const zoomLimit=Math.min(comfortable,height*.41/Math.max(elevation,120),width*.58/Math.max(delta,100));
+  const zoom=run.training ? clamp(height/550,.42,1.25) : clamp(zoomLimit,.37,1.3);
+  const separation=Math.max(delta * .43 / (width*.55),elevation*.45 / (height*.40));
+  if (two) {
+    if (separation>1.06) run.split=true;
+    else if (separation<.78) run.split=false;
+  }
+  const targetSplit=two && !run.training && run.split ? 1 : 0;
+  run.splitMix=save.motion ? mix(run.splitMix,targetSplit,1-Math.exp(-dt*12)) : targetSplit;
+  if (Math.abs(run.splitMix-targetSplit)<.013) run.splitMix=targetSplit;
+  const easing=1-Math.exp(-dt*8);
+  const sharedX=run.training ? 610 : mean + clamp(avgV*.115,15,102);
+  if (!run.camera) run.camera={x:sharedX,z:zoom,singles:riders.map(p => ({x:p.x,y:p.y}))};
+  const camera=run.camera;
+  camera.x=mix(camera.x,sharedX,easing);
+  camera.z=mix(camera.z,zoom,easing);
+  const shared=makeView(0,0,width,height,camera.z,camera.x,0);
+  const views=riders.map(p => {
+    const c=camera.singles[p.id];
+    const w=two ? width : width/2;
+    const h=height/2;
+    const viewportX=two ? 0 : (p.id%2)*w;
+    const viewportY=(two ? p.id : Math.floor(p.id/2))*h;
+    const offset=two ? .28 : .33;
+    const candidate=clamp(height/580,.37,1.15)*(1.06-p.v/3500);
+    const localZoom=run.training ? clamp(height/710,.38,1.05) : clamp(candidate,.31,1.15);
+    const pose=run.training ? {x:p.homeX,y:riderSurface(p,p.homeX)} : visiblePose(p);
+    const look=mix(pose.y,terrain(run.course,p.lane,pose.x+160),.14)+p.gravity*9;
+    c.x=mix(c.x,run.training ? 630 : pose.x + clamp(p.v*.105,20,95),easing);
+    c.y=mix(c.y,look,easing);
+    return makeView(viewportX,viewportY,w,h,localZoom,c.x,c.y,p.dir,offset);
+  });
+  return {views,shared};
+}
+function drawRun(dt) {
+  const riders=run.riders;
+  const {views,shared}=viewTargets(dt);
+  if (riders.length===2 && run.splitMix<1) {
+    const pal=paletteAt(run.course,shared.x,run.mastery);
+    drawCurrentView(shared,riders,pal);
+  }
+  if (riders.length===4 || run.splitMix>0) {
+    ctx.save();
+    ctx.globalAlpha=riders.length===4 ? 1 : run.splitMix;
+    riders.forEach((p,i) => {
+      const pal = paletteAt(run.course,p.x,run.mastery);
+      drawCurrentView(views[i],[p],pal,false);
+      horizonIndicator(views[i],pal);
+    });
+    line(0,height/2,width,height/2,'#91dedbd0',1);
+    if (riders.length===4) {
+      const unit=clamp(width*.05,18,44);
+      const veil=ctx.createLinearGradient(width/2-unit,0,width/2+unit,0);
+      veil.addColorStop(0,'#07152200');veil.addColorStop(.50,'#071522f8');veil.addColorStop(1,'#07152200');
+      ctx.fillStyle=veil;ctx.fillRect(width/2-unit,0,unit*2,height);
+      line(width/2,0,width/2,height,'#8acfd280',1);
+      if (run.mode==='teams') {
+        directedTether(views,riders[0],riders[2]);
+        directedTether(views,riders[1],riders[3]);
+      }
+    } else {
+      directedTether(views,riders[0],riders[1]);
+      diamond(width-20,height/2,4,'#bdeff4','#183044');
+    }
+    ctx.restore();
+  }
+  controlBadges(riders.length===4);
+  originSparks();
+}
+function drawTitle() {
+  const course=chosenCourse();
+  const pal=paletteAt(course,course.length*.10);
+  const v=makeView(0,0,width,height,1,save.motion ? menuTime*16 : 0,0);
+  paintBackdrop(v,pal,380,true,course.world);
+  const cx=width*.77,cy=height*.47;
+  const rad=Math.max(80,Math.min(height*.50,width*.27));
+  const drift=save.motion ? Math.sin(menuTime*.65)*height*.012 : 0;
+  const light=ctx.createRadialGradient(cx,cy,10,cx,cy,rad);
+  light.addColorStop(0,rgba(pal.alt,.29));
+  light.addColorStop(.76,rgba(pal.brim,.12));
+  light.addColorStop(1,rgba(pal.brim,0));
+  ctx.fillStyle=light;ctx.fillRect(cx-rad,cy-rad,rad*2,rad*2);
+  for (let i=1;i<=5;i++) {
+    ellipse(cx,cy,rad*(.27+.14*i),rad*(.27+.14*i));
+    ctx.strokeStyle=rgba(pal.brim,.17-i*.016);ctx.lineWidth=1;ctx.stroke();
+  }
+  for (let i=0;i<12;i++) {
+    const mark=i*TAU/12;
+    line(cx+Math.cos(mark)*rad*.985,cy+Math.sin(mark)*rad*.985,cx+Math.cos(mark)*rad*1.025,cy+Math.sin(mark)*rad*1.025,rgba(pal.brim,.42),1);
+  }
+  for (let i=0;i<12;i++) {
+    const points=[];
+    for (let x=width*.30;x<width*1.04;x+=7) {
+      const t=(x-width*.65)/Math.max(150,width*.36);
+      const y=height*.52 + Math.sin(t*3.08-.07+i*.075)*height*(.17+i*.011) + (i-6)*height*.016;
+      points.push([x,y]);
+    }
+    path(points);
+    ctx.strokeStyle=rgba(i%4===0 ? pal.spark : pal.brim,i===6 ? .93 : .11+i*.023);
+    ctx.lineWidth=i===6 ? 2 : i%5===0 ? 1.4 : .85;
+    ctx.stroke();
+  }
+  paintForeground(v,pal,course,null);
+  const size=clamp(Math.min(height*.0054,width*.00255),1.1,4.8);
+  const top={x:cx+rad*.16,y:cy-rad*.26+drift};
+  const bottom={x:cx-rad*.38,y:cy+rad*.43-drift};
+  const d=ctx.createLinearGradient(bottom.x-rad*.65,0,top.x,0);
+  d.addColorStop(0,rgba(pal.brim,0));d.addColorStop(1,rgba(pal.brim,.57));
+  for (const [rider,turn] of [[top,1],[bottom,-1]]) {
+    const len=rad*(turn===1 ? 1.08 : .93);
+    for (let i=0;i<4;i++) {
+      ctx.beginPath();
+      ctx.moveTo(rider.x-len,rider.y+height*.14*turn+i*5);
+      ctx.bezierCurveTo(rider.x-len*.48,rider.y+height*.11*turn+i*4.5,rider.x-len*.4,rider.y+i*5.5,rider.x-size*10,rider.y + i*5);
+      ctx.strokeStyle=d;ctx.lineWidth=i===0 ? 2 : .75;ctx.stroke();
+    }
+  }
+  const a=skinFor(0),b=skinFor(1);
+  seal(top.x,top.y,size,1,1,-.40,a.color,{face:a.face,pattern:a.pattern,stretch:.13,fill:.87});
+  seal(bottom.x,bottom.y,size*.72,1,-1,.19,b.color,{face:b.face,pattern:b.pattern,stretch:.09,fill:.8});
+  diamond(cx+rad*.69,cy-rad*.35,4,pal.brim,rgba(pal.brim,.26));
+  diamond(cx-rad*.32,cy-rad*.55,2.8,pal.spark,rgba(pal.spark,.24));
+}
+let lastFrame = 0, accumulator = 0;
+function frame(now) {
+  const dt=lastFrame ? Math.min(.054,(now-lastFrame)/1000) : 0;
+  lastFrame=now;
+  if (width && height) {
+    if (state==='menu') {
+      if (!panel) menuTime+=dt;
+      drawTitle();
+    } else {
+      if (state==='run' && !panel) {
+        accumulator+=dt;
+        while (accumulator>=STEP && state==='run') {
+          tick(STEP);
+          accumulator-=STEP;
+        }
+      } else accumulator=0;
+      drawRun(panel ? 0 : dt);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+updateMenu();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
